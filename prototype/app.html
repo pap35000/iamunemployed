@@ -1,0 +1,1169 @@
+<title>iAmUnemployed Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a phone-sized app frame centred on the page (full-bleed on phones), with a short try-this guide beside it on wide screens */
+:root{
+  --page:#DCE2E9; --bg:#EEF1F4; --paper:#FFFFFF; --ink:#18212C; --muted:#5A6676; --line:#D5DCE4;
+  --ticket:#F2C230; --ticket-ink:#2A2100; --ticket-soft:#FBF0C9;
+  --escape:#1B7F67; --on-escape:#FFFFFF; --escape-soft:#DCF1EA;
+  --led:#C8361B; --led-bg:#1A1412; --led-ok:#5BE3B8;
+  --warn-soft:#FBEFD2; --scrim:rgba(17,22,28,.45); --shadow:rgba(24,33,44,.35);
+  --av-a:#CFE0F5; --av-a-ink:#18324F; --av-b:#F6D9CF; --av-b-ink:#5A2414;
+  --av-c:#D3EEE4; --av-c-ink:#145C4A; --av-d:#F8EBC0; --av-d-ink:#5A4300;
+  --f-body:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#0A0E13; --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --ticket-soft:#3A3112;
+  --escape:#4CC3A2; --on-escape:#06231B; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908; --led-ok:#5BE3B8;
+  --warn-soft:#3A2F12; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.7);
+  --av-a:#22344A; --av-a-ink:#CFE0F5; --av-b:#4A2A22; --av-b-ink:#F6D9CF;
+  --av-c:#163A31; --av-c-ink:#BDEBDD; --av-d:#3A3112; --av-d-ink:#F5E3A6;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --page:#0A0E13; --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --ticket-soft:#3A3112;
+  --escape:#4CC3A2; --on-escape:#06231B; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908; --led-ok:#5BE3B8;
+  --warn-soft:#3A2F12; --scrim:rgba(0,0,0,.6); --shadow:rgba(0,0,0,.7);
+  --av-a:#22344A; --av-a-ink:#CFE0F5; --av-b:#4A2A22; --av-b-ink:#F6D9CF;
+  --av-c:#163A31; --av-c-ink:#BDEBDD; --av-d:#3A3112; --av-d-ink:#F5E3A6;
+  color-scheme:dark}
+
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--page);color:var(--ink);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.gx{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* stage and device frame */
+.stage{height:100%;display:flex;justify-content:center;align-items:center;gap:48px;padding-block:20px}
+.device{position:relative;flex:none;width:400px;max-width:100%;height:100%;max-height:860px;background:var(--bg);
+  border:1px solid var(--line);border-radius:34px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 40px 80px -40px var(--shadow)}
+.guide{width:300px;flex:none;display:flex;flex-direction:column;gap:12px}
+.guide .eyebrow{font:700 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.guide h1{font:900 34px/1.05 var(--f-body);letter-spacing:-.02em;margin:0}
+.guide p{margin:0;color:var(--muted)}
+.guide h2{font:800 16px var(--f-body);margin:8px 0 0}
+.guide ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.guide .small{font-size:13px}
+@media (max-width:820px){.guide{display:none}}
+@media (max-width:520px){
+  body{background:var(--paper)}
+  .stage{padding-block:0;padding-left:0;padding-right:0}
+  .device{width:100%;max-height:none;border:0;border-radius:0;box-shadow:none}
+}
+
+/* app bar */
+.appbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border-bottom:1px solid var(--line);padding-block:14px 12px}
+.logo{display:flex;align-items:center;font:900 20px/1 var(--f-body);letter-spacing:-.02em;white-space:nowrap}
+.mark{display:inline-grid;place-items:center;width:22px;height:25px;margin-right:3px;border-radius:6px;background:var(--ticket);color:var(--ticket-ink);font:800 15px var(--f-mono);letter-spacing:0}
+[data-escaped="true"] .mark{background:var(--escape);color:var(--on-escape)}
+.appbar-right{display:flex;align-items:center;gap:10px}
+.proto{font:700 10px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 6px}
+.streak{display:flex;align-items:center;gap:3px;font:700 14px var(--f-mono);font-variant-numeric:tabular-nums}
+.streak svg{width:16px;height:16px;fill:var(--led)}
+@media (max-width:360px){.proto{display:none}}
+
+/* views */
+.views{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.view{padding-block:16px 28px;display:flex;flex-direction:column;gap:14px}
+.view h2{font:800 17px/1.25 var(--f-body);margin:0;text-wrap:balance}
+.view h3{font:700 11.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 -4px}
+.hint{font-size:13.5px;color:var(--muted);margin:0}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+.block{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.demo-note{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);border:1px dashed var(--line);border-radius:12px;padding:6px 12px}
+.linkish{border:0;background:none;padding:6px 0;font:700 12.5px var(--f-body);color:var(--ink);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+
+/* tab bar */
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:var(--paper);border-top:1px solid var(--line);padding-block:6px 8px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;color:var(--muted);font:700 11px var(--f-body);padding:4px 0;border-radius:10px;min-height:50px}
+.tab .ic{display:grid;place-items:center;width:46px;height:28px;border-radius:99px}
+.tab svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab[aria-current="page"] .ic{background:var(--ticket);color:var(--ticket-ink)}
+
+/* queue ticket */
+.tk{position:relative;background:var(--ticket);color:var(--ticket-ink);border-radius:18px;padding:18px 18px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tk::before,.tk::after{content:"";position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.tk::before{left:-9px}.tk::after{right:-9px}
+.tk.escaped{background:var(--escape);color:var(--on-escape)}
+.tk-label,.tk-sub{font:700 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase}
+.tk-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:6px}
+.led{font:700 13px var(--f-mono);background:var(--led-bg);color:var(--led);padding:3px 7px;border-radius:5px;letter-spacing:.06em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.led.big{font-size:46px;line-height:1.1;padding:6px 14px;border-radius:10px;margin:6px 0 2px}
+.led.ok{color:var(--led-ok)}
+.progress{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:6px;font:600 12.5px var(--f-body)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:inherit;background:var(--ink)}
+.tk .bar{background:rgba(42,33,0,.16)}
+.tk .bar i{background:var(--ticket-ink)}
+.cheers{margin:6px 0 0;font-size:13px;font-weight:700}
+
+/* pills */
+.pill{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font:600 12px/1.4 var(--f-body);padding:2px 9px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+.pill.esc{background:var(--escape-soft);color:var(--escape);border-color:transparent}
+.pill.on-tk{background:rgba(255,255,255,.55);color:var(--ticket-ink);border-color:transparent}
+.pill.on-esc{background:rgba(255,255,255,.22);color:var(--on-escape);border-color:transparent}
+
+/* home */
+.stats{display:flex;gap:8px}
+.stats>div{flex:1 1 0;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stats b{display:block;font:700 22px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
+.stats span{display:block;font-size:12px;line-height:1.3;color:var(--muted)}
+.moods{display:flex;gap:8px}
+.mood{flex:1 1 0;min-width:0;min-height:48px;font-size:22px;line-height:1;border:1.5px solid var(--line);background:var(--bg);border-radius:12px}
+.mood[aria-pressed="true"]{border-color:var(--ink);background:var(--ticket-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;font:600 13px var(--f-body);border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .n{font:700 11px var(--f-mono);background:var(--ticket);color:var(--ticket-ink);border-radius:99px;padding:1px 6px}
+.log{font-size:13px;color:var(--muted);margin:0}
+
+/* buttons and fields */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:700 15px var(--f-body);border:0;border-radius:12px;padding:11px 16px;min-height:46px;background:var(--ink);color:var(--bg);text-align:center}
+.btn.ticket{background:var(--ticket);color:var(--ticket-ink)}
+.btn.escape{background:var(--escape);color:var(--on-escape)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{min-height:38px;padding:7px 12px;font-size:13.5px}
+.btn.wide{width:100%}
+.row{display:flex;gap:8px;align-items:center}
+.row>input{flex:1;min-width:0}
+.row.wrap{flex-wrap:wrap}
+.row.fill>*{flex:1 1 0;min-width:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:14px}
+.field small{color:var(--muted);font-size:12.5px}
+input:not([type="checkbox"]),select,textarea{width:100%;font:500 15px var(--f-body);background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;min-height:46px}
+textarea{resize:vertical;min-height:120px;line-height:1.45}
+.set{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;cursor:pointer}
+.set>span{min-width:0}
+.set b{display:block;font-size:14.5px}
+.set small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35}
+.set select{width:auto;max-width:52%;min-height:40px;padding:6px 10px}
+.switch{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;margin:0;border-radius:99px;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--paper);box-shadow:0 1px 3px var(--shadow);transition:transform .2s}
+.switch:checked{background:var(--escape)}
+.switch:checked::after{transform:translateX(18px)}
+
+/* boards */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.seg button{border:0;background:none;border-radius:9px;padding:8px 4px;min-height:38px;font:700 13px var(--f-body);color:var(--muted)}
+.seg button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.banner{background:var(--warn-soft);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;font-size:13.5px}
+.board{list-style:none;margin:0;padding:0;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.board li{display:grid;grid-template-columns:minmax(26px,auto) minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+.board li:first-child{border-top:0}
+.board li.me{background:var(--ticket-soft)}
+.rk{font:700 12.5px var(--f-mono);color:var(--muted)}
+.who{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.who b{max-width:100%;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who em,.you{font-style:normal;font-weight:600;color:var(--muted)}
+.who small{font-size:11.5px;color:var(--muted)}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.right small{font-size:11px;color:var(--muted);white-space:nowrap}
+
+/* feed */
+.compose-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:10px 14px;color:var(--muted);font-size:14.5px;min-height:56px}
+.post{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.post.win,.post.escape{border-color:var(--escape)}
+.post header{display:flex;gap:10px;align-items:flex-start}
+.av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font:800 13px var(--f-body)}
+.av.a{background:var(--av-a);color:var(--av-a-ink)}
+.av.b{background:var(--av-b);color:var(--av-b-ink)}
+.av.c{background:var(--av-c);color:var(--av-c-ink)}
+.av.d{background:var(--av-d);color:var(--av-d-ink)}
+.av.x{background:var(--ink);color:var(--bg)}
+.av.big{width:60px;height:60px;font-size:19px}
+.meta{min-width:0;flex:1}
+.meta .name{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;font-weight:800;font-size:14.5px}
+.meta .sub{font-size:12.5px;color:var(--muted)}
+.post p{margin:0;line-height:1.5;overflow-wrap:anywhere}
+.tag{font:700 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--escape)}
+.reacts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.react{display:inline-flex;align-items:center;gap:5px;font:600 12.5px var(--f-body);border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 10px;min-height:32px}
+.react span{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.react[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.replies{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.meme-card{width:100%;max-width:100%;aspect-ratio:1/1;border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;background:var(--ink);color:var(--bg)}
+.meme-card .top{font:700 11px var(--f-mono);letter-spacing:.1em;opacity:.8}
+.meme-card .big{font:900 22px/1.15 var(--f-body);overflow-wrap:anywhere}
+.meme-card .foot{display:flex;justify-content:space-between;gap:8px;font:600 11px var(--f-mono)}
+
+/* fun */
+.stack{display:flex;flex-direction:column;gap:10px}
+.ad{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.ad.voted{border-color:var(--escape)}
+.co{font-size:12px;color:var(--muted)}
+.blur{filter:blur(4px);user-select:none}
+.ad-text{margin:0;font-weight:700;line-height:1.4}
+.votes{width:100%;display:flex;flex-direction:column;gap:5px}
+.votes span{font-size:12.5px;color:var(--muted)}
+.ad.voted .bar i{background:var(--escape)}
+.bingo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cell{aspect-ratio:1/1;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px;border:1.5px solid var(--line);background:var(--paper);border-radius:10px;font:600 10.5px/1.2 var(--f-body);overflow-wrap:anywhere}
+.cell[aria-pressed="true"]{background:var(--ticket);color:var(--ticket-ink);border-color:var(--ticket)}
+.cell.free{background:var(--ink);color:var(--bg);border-color:var(--ink);font:700 10.5px/1.2 var(--f-mono);letter-spacing:.06em;cursor:default}
+.cell.win{box-shadow:inset 0 0 0 2px var(--escape)}
+.win-banner{background:var(--escape-soft);border-color:transparent}
+.win-banner strong{font:900 28px/1 var(--f-body);color:var(--escape)}
+
+/* me */
+.profile{display:flex;gap:14px;align-items:center}
+.pmeta{min-width:0}
+.view .pmeta h2{font-size:20px;overflow-wrap:anywhere}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.wrapped{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wrapped.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.wrapped>div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px}
+.wrapped b{display:block;font:700 20px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
+.wrapped span{display:block;font-size:11.5px;line-height:1.3;color:var(--muted)}
+.badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.badge{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.badge.earned{background:var(--ticket-soft);border-color:transparent}
+.badge b{font-size:14px;line-height:1.25}
+.badge small{font-size:12px;line-height:1.35;color:var(--muted)}
+.badge .state{margin-top:4px;font:700 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.badge.earned .state{color:var(--ink)}
+.badge .bar{width:100%;height:6px;margin-top:6px}
+.badge .bar i{background:var(--escape)}
+.badge .btn{margin-top:6px}
+.settings{display:flex;flex-direction:column;gap:8px}
+.helpbox{background:var(--warn-soft);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.line b{display:block;font:700 17px var(--f-mono)}
+.line span{font-size:13px;color:var(--muted)}
+.line a{color:var(--ink)}
+.tips{margin:0;padding-left:1.2em;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+
+/* calm mode */
+.calm-only{display:none}
+[data-calm="true"] .calm-only{display:block}
+[data-calm="true"] .joke{display:none}
+.calm-note{background:var(--escape-soft);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.calm-box{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+
+/* sheets, screens, toast */
+.overlay{position:absolute;inset:0;z-index:50;background:var(--scrim);display:flex;align-items:flex-end}
+.sheet{width:100%;max-height:92%;overflow-y:auto;background:var(--paper);border-radius:22px 22px 0 0;padding-block:18px 22px;display:flex;flex-direction:column;gap:12px}
+.sheet h2{font:800 19px/1.25 var(--f-body);margin:0;text-wrap:balance}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.x{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1;display:grid;place-items:center}
+.screen{position:absolute;inset:0;z-index:30;background:var(--bg);overflow-y:auto;display:flex;flex-direction:column}
+.screen .inner{position:relative;z-index:1;flex:1 0 auto;display:flex;flex-direction:column;justify-content:center;gap:14px;padding-block:32px}
+.screen h1{font:900 30px/1.1 var(--f-body);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.screen .eyebrow{font:700 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cheers-line{margin:0;font-weight:700}
+#confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.toast{position:absolute;z-index:60;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:84px;background:var(--ink);color:var(--bg);border-radius:12px;padding:11px 14px;font:600 14px/1.4 var(--f-body);text-align:center;box-shadow:0 10px 30px -10px var(--shadow)}
+@media (prefers-reduced-motion:no-preference){
+  .overlay:not([hidden]) .sheet{animation:up .22s ease-out}
+  .toast:not([hidden]){animation:pop .2s ease-out}
+  .chip:active,.mood:active,.btn:active,.cell:active{transform:scale(.97)}
+}
+@keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+</style>
+
+<div class="stage gx">
+  <div class="device" id="device" lang="en" data-calm="false" data-escaped="false">
+    <header class="appbar gx">
+      <div class="logo"><span class="mark" aria-hidden="true">i</span><span id="logo-word" aria-hidden="true">AmUnemployed</span><span class="sr" id="logo-sr">iAmUnemployed</span></div>
+      <div class="appbar-right">
+        <span class="proto">Prototype</span>
+        <span class="streak" title="Day streak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.8c.5 2.8 4.4 4.6 4.4 9.2a5 5 0 0 1-10 0c0-1.9.9-3.3 2-4.2.2 1.7 1.1 2.7 2.3 2.9-.3-2.6.1-5.4 1.3-7.9z"/></svg><b id="streak">0</b><span class="sr"> day streak</span></span>
+      </div>
+    </header>
+
+    <main class="views" id="views">
+      <section class="view gx" id="view-home" data-view="home" aria-label="Queue"></section>
+      <section class="view gx" id="view-boards" data-view="boards" aria-label="Leaderboards" hidden></section>
+      <section class="view gx" id="view-feed" data-view="feed" aria-label="Feed" hidden></section>
+      <section class="view gx" id="view-fun" data-view="fun" aria-label="Fun" hidden></section>
+      <section class="view gx" id="view-me" data-view="me" aria-label="Me" hidden></section>
+    </main>
+
+    <nav class="tabbar gx" aria-label="Main">
+      <button class="tab" type="button" data-action="tab" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v3a1.75 1.75 0 0 0 0 3.5v3h-17v-3a1.75 1.75 0 0 0 0-3.5z"/><path d="M15 8.5v7" stroke-dasharray="1.5 2"/></svg></span>Queue</button>
+      <button class="tab" type="button" data-action="tab" data-tab="boards"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-6h5v6M9.5 20V9h5v11M15 20v-8h5v8M3 20h18"/></svg></span>Boards</button>
+      <button class="tab" type="button" data-action="tab" data-tab="feed"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H10l-4.5 3.5v-3.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/></svg></span>Feed</button>
+      <button class="tab" type="button" data-action="tab" data-tab="fun"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 12h16M12 4v16"/></svg></span>Fun</button>
+      <button class="tab" type="button" data-action="tab" data-tab="me"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></span>Me</button>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- share sheet -->
+    <div class="overlay" id="ov-share" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="share-h">
+        <div class="sheet-head"><h2 id="share-h">Your card for today</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div id="share-card"></div>
+        <div class="row fill"><button class="btn ghost small" type="button" data-action="shuffle">Another joke</button><button class="btn small" type="button" data-action="copy-share">Copy caption</button></div>
+        <p class="hint">In the real app this saves as an image, ready for TikTok and Instagram.</p>
+      </div>
+    </div>
+
+    <!-- compose sheet -->
+    <div class="overlay" id="ov-compose" hidden>
+      <form class="sheet gx" id="compose-form" role="dialog" aria-modal="true" aria-labelledby="compose-h" novalidate>
+        <div class="sheet-head"><h2 id="compose-h">Share with the queue</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div class="field"><label for="composer-text">What’s on your mind?</label><textarea id="composer-text" maxlength="500" placeholder="A rejection, a win, a question, a rant. It all counts."></textarea></div>
+        <div class="field"><label for="composer-cat">Category</label><select id="composer-cat"></select></div>
+        <label class="set" for="composer-anon"><span><b>Post fully anonymously</b><small>Your nickname is hidden on this post.</small></span><input type="checkbox" class="switch" role="switch" id="composer-anon"></label>
+        <button class="btn wide" type="submit">Post</button>
+      </form>
+    </div>
+
+    <!-- crisis support sheet -->
+    <div class="overlay" id="ov-crisis" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="crisis-h">
+        <h2 id="crisis-h">That sounds really heavy.</h2>
+        <p class="hint">You don’t have to carry this alone. If you’re thinking about ending your life or you’re in danger, please reach out now. These lines are free and confidential.</p>
+        <div id="crisis-help"></div>
+        <p class="hint">In the real app, a trained moderator would also check in with you.</p>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="crisis-edit">Back to my post</button><button class="btn" type="button" data-action="crisis-post">Post it</button></div>
+      </div>
+    </div>
+
+    <!-- escape sheet -->
+    <div class="overlay" id="ov-escape" hidden>
+      <form class="sheet gx" id="escape-form" role="dialog" aria-modal="true" aria-labelledby="escape-h" novalidate>
+        <div class="sheet-head"><h2 id="escape-h">Did you land a job?</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div class="field"><label for="esc-role">What’s the role? (optional)</label><input id="esc-role" maxlength="40" placeholder="e.g. Junior Copywriter" autocomplete="off"></div>
+        <label class="set" for="esc-wall"><span><b>Post my escape on the Wall</b><small>The whole queue gets to celebrate with you.</small></span><input type="checkbox" class="switch" role="switch" id="esc-wall" checked></label>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="close">Not yet</button><button class="btn escape" type="submit">Yes, I escaped!</button></div>
+      </form>
+    </div>
+
+    <!-- copy fallback sheet -->
+    <div class="overlay" id="ov-copy" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="copy-h">
+        <div class="sheet-head"><h2 id="copy-h">Copy your caption</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <p class="hint">Automatic copying is blocked here. The caption is selected below, so copy it from this box.</p>
+        <textarea id="copy-text" readonly></textarea>
+        <button class="btn wide" type="button" data-action="close">Done</button>
+      </div>
+    </div>
+
+    <!-- escape ceremony -->
+    <div class="screen" id="scr-ceremony" role="dialog" aria-modal="true" aria-labelledby="cer-h" hidden>
+      <canvas id="confetti" aria-hidden="true"></canvas>
+      <div class="inner gx">
+        <div class="eyebrow">Escape confirmed</div>
+        <h1 id="cer-h">You’re out!</h1>
+        <div class="tk escaped" id="cer-ticket"></div>
+        <div class="wrapped two" id="cer-stats"></div>
+        <p class="cheers-line" data-cheers-home></p>
+        <p class="hint" id="cer-badges"></p>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="copy-escape">Copy caption</button><button class="btn escape" type="button" id="cer-done" data-action="cer-done">Done</button></div>
+      </div>
+    </div>
+
+    <!-- sign-up -->
+    <div class="screen" id="scr-onboard" role="dialog" aria-modal="true" aria-label="Sign up" hidden>
+      <div class="inner gx" id="ob-1">
+        <div class="tk"><div class="tk-label">Your number</div><span class="led big">????</span><div class="tk-sub">days in the queue</div></div>
+        <h1>Welcome to the queue.</h1>
+        <p class="hint">Count your days, collect ridiculous titles and help each other out. When you land a job, the whole queue celebrates your escape.</p>
+        <button class="btn ticket wide" type="button" data-action="ob-next">Get my number</button>
+        <button class="btn ghost wide" type="button" data-action="ob-cancel">Not now</button>
+      </div>
+      <form class="inner gx" id="ob-form" novalidate hidden>
+        <h1>About you</h1>
+        <p class="hint">Takes 30 seconds. Your real name never appears anywhere.</p>
+        <div class="field"><label for="ob-nick">Nickname</label><div class="row"><input id="ob-nick" maxlength="20" autocomplete="off" placeholder="e.g. CoverLetterPoet"><button class="btn ghost small" type="button" data-action="ob-suggest">Suggest</button></div></div>
+        <div class="field"><label for="ob-industry">Industry</label><select id="ob-industry"></select></div>
+        <div class="field"><label for="ob-country">Country</label><select id="ob-country"></select></div>
+        <div class="field"><label for="ob-start">When did your job search start?</label><input type="date" id="ob-start"></div>
+        <label class="set" for="ob-public"><span><b>Show me on public leaderboards</b><small>Off by default. You can change it any time.</small></span><input type="checkbox" class="switch" role="switch" id="ob-public"></label>
+        <button class="btn ticket wide" type="submit">Get my number</button>
+      </form>
+      <div class="inner gx" id="ob-3" hidden></div>
+    </div>
+  </div>
+
+  <aside class="guide" aria-label="About this prototype">
+    <div class="eyebrow">Clickable prototype</div>
+    <h1>iAmUnemployed</h1>
+    <p>The first version of the app, ready to click through. It opens as a sample member on day 147 of the queue. Everything you do stays in this browser.</p>
+    <h2>Try this</h2>
+    <ul>
+      <li>Log moves on <b>Queue</b> and climb Grind of the Week.</li>
+      <li>Make a meme card with <b>Share my day</b>.</li>
+      <li>Post in the <b>Feed</b>, anonymously if you like.</li>
+      <li>Get a full line in <b>Rejection Bingo</b>.</li>
+      <li>Turn on <b>calm mode</b> in Me.</li>
+      <li>Tap <b>I escaped!</b> for the ceremony.</li>
+      <li>Sign up as yourself from <b>Me</b>.</li>
+    </ul>
+    <p class="small">Members, posts and numbers are made-up examples.</p>
+  </aside>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => (Number(n) || 0).toLocaleString('en-US');
+const pad = (n, w = 4) => String(Math.max(0, Math.min(9999, Number(n) || 0))).padStart(w, '0');
+
+/* dates in local time */
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const parseYmd = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+const todayStr = () => ymd(new Date());
+const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diffDays = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+const weekKeyOf = s => { const d = parseYmd(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); };
+
+/* content */
+const TITLES = [[0, 30, 'On Vacation (Allegedly)'], [31, 90, 'LinkedIn Ambassador'], [91, 180, 'PhD in Iced Coffee'], [181, 365, 'Couch Sage'], [366, Infinity, 'Living Legend']];
+const tierOf = d => Math.max(0, TITLES.findIndex(t => d >= t[0] && d <= t[1]));
+const titleFor = d => TITLES[tierOf(d)][2];
+
+const COUNTRIES = [['US', 'United States'], ['UK', 'United Kingdom'], ['IE', 'Ireland'], ['CA', 'Canada'], ['AU', 'Australia'], ['GR', 'Greece'], ['XX', 'Somewhere else']];
+const countryName = c => (COUNTRIES.find(x => x[0] === c) || COUNTRIES[6])[1];
+const HELP = {
+  US: [['988', 'Suicide & Crisis Lifeline. Call or text, 24/7.']],
+  UK: [['116 123', 'Samaritans. Free, 24/7.']],
+  IE: [['116 123', 'Samaritans. Free, 24/7.']],
+  CA: [['988', 'Suicide Crisis Helpline. Call or text, 24/7.']],
+  AU: [['13 11 14', 'Lifeline. 24/7.']],
+  GR: [['1018', 'Klimaka suicide prevention line.'], ['10306', 'Mental health support line.']],
+  XX: []
+};
+const INDUSTRIES = ['Tech', 'Design', 'Marketing', 'Hospitality', 'Retail', 'Healthcare', 'Education', 'Finance', 'Other'];
+const CATS = ['Mental Health', 'Interviews', 'CVs & Résumés', 'Rejections', 'Benefits & Paperwork', 'Career Change', 'Wins', 'Memes'];
+const MOVES = [['applied', 'Applied'], ['interview', 'Interview'], ['course', 'Course'], ['coffee', 'Coffee chat'], ['workout', 'Workout'], ['helped', 'Helped someone'], ['rejected', 'Got rejected'], ['ghosted', 'Got ghosted']];
+const moveLabel = k => (MOVES.find(m => m[0] === k) || [k, k])[1];
+const MOVE_TOAST = {
+  applied: 'Application logged. The ATS has been notified.',
+  interview: 'Interview logged. Go get them.',
+  course: 'Course logged. Big brain energy.',
+  coffee: 'Coffee chat logged. Networking unlocked.',
+  workout: 'Workout logged. Body and mind.',
+  helped: 'Thanks for helping someone in the queue.',
+  rejected: 'Rejection logged. It still counts as effort.'
+};
+const MOODS = [['awful', '😫', 'Awful'], ['low', '😕', 'Low'], ['meh', '😐', 'Meh'], ['okay', '🙂', 'Okay'], ['good', '😄', 'Good']];
+const MOOD_TOAST = {
+  awful: 'Rough day. Be gentle with yourself. The Feed is here if you want to talk.',
+  low: 'Noted. Small steps count today.',
+  meh: 'Meh is allowed. You showed up.',
+  okay: 'Okay is good. Keep going.',
+  good: 'Love that. Ride the wave.'
+};
+
+const LEGENDS = [['CoffeeShopCEO', 412], ['Resume_v47_FINAL', 389], ['Mr.Overqualified', 291], ['IcedLatteThinker', 203], ['TeacherToUX', 122], ['Speedrun_Steve', 88], ['Ghosted_Again', 62]];
+const ESCAPEES = [[1284, 'NickTheDev', 214, '5 hours ago'], [1283, 'Maria_from_Dublin', 95, 'yesterday'], [1282, 'Kostas.exe', 388, '2 days ago'], [1281, 'Anonymous_Chef', 31, '3 days ago'], [1280, 'LinkedIn_Survivor', 167, '4 days ago']];
+const GRIND = [['GrindsetGrace', 33, 45], ['Ghosted_Again', 29, 12], ['IcedLatteThinker', 26, 38], ['TeacherToUX', 22, 9], ['NewHere_Day3', 19, 3], ['Mr.Overqualified', 17, 9]];
+
+const POSTS = [
+  {id: 'p1', nick: 'Speedrun_Steve', days: 88, cat: 'Rejections', ago: '2h', text: 'Applied at 2:59am. Rejected at 3:02am. My coffee wasn’t even ready. Respect the efficiency, I guess.', r: {same: 214, hug: 41, haha: 532}, replies: 38},
+  {id: 'p2', anon: true, days: 203, cat: 'Mental Health', ago: '3h', text: 'Some days the hardest part is opening the laptop. Today I opened it, closed it, and went for a long walk instead. I’m counting that as a win.', r: {same: 276, hug: 389, haha: 0}, replies: 54},
+  {id: 'p3', nick: 'NickTheDev', escapee: true, days: 214, cat: 'Wins', kind: 'win', ago: '5h', text: 'ESCAPED after 214 days. Junior data analyst. To everyone still in the queue: none of those rejections were a verdict on you. See you on the mentor side.', r: {congrats: 1204, hug: 310}, replies: 212},
+  {id: 'p4', nick: 'Mr.Overqualified', days: 291, cat: 'Interviews', ago: '6h', text: 'Round 5. They asked me to “tell them a bit about myself” again. I’m starting to think there’s a new interviewer every round and nobody takes notes.', r: {same: 388, hug: 22, haha: 610}, replies: 71},
+  {id: 'p5', nick: 'IcedLatteThinker', days: 203, cat: 'Memes', kind: 'meme', ago: '8h', meme: {top: 'UNICORN SIGHTING', big: '“Entry level. 5+ years of experience in a tool that came out last year.”', tag: '#unicornjobs'}, r: {haha: 845, same: 97}, replies: 63},
+  {id: 'p6', nick: 'Maria_from_Dublin', escapee: true, days: 95, cat: 'CVs & Résumés', kind: 'tip', ago: '1d', text: 'Tip from the other side: put a number in every bullet on your CV. “Ran social media” becomes “Grew Instagram from 2k to 11k in 8 months.” My reply rate doubled.', r: {useful: 356, hug: 12}, replies: 29},
+  {id: 'p7', nick: 'TeacherToUX', days: 122, cat: 'Career Change', ago: '1d', text: 'Teacher to UX designer, month 4. My portfolio has three projects now. Who wants to roast it, gently?', r: {same: 41, hug: 88, haha: 5}, replies: 47},
+  {id: 'p8', nick: 'Ghosted_Again', days: 62, cat: 'Benefits & Paperwork', ago: '2d', text: 'Does a short online course affect benefits? I asked three different people and got three different answers.', r: {same: 173, hug: 15, haha: 9}, replies: 33}
+];
+const REACTS = {default: ['same', 'hug', 'haha'], win: ['congrats', 'hug'], escape: ['congrats', 'hug'], tip: ['useful', 'hug'], hiring: ['useful', 'congrats'], meme: ['haha', 'same']};
+const REACT_LABEL = {same: 'Same', hug: 'Hug', haha: 'Haha', congrats: 'Congrats', useful: 'Useful'};
+
+const ADS = [
+  {co: 'Example Media Ltd', when: 'posted 2 days ago', text: 'Entry-level marketing assistant. 5+ years of experience required. Must be fluent in 4 languages. Salary: competitive.', votes: 412},
+  {co: 'Sample Labs Inc', when: 'posted 3 days ago', text: 'Junior developer. Expert in 9 frameworks, including 2 that haven’t been released yet. Unpaid 6-month trial.', votes: 389},
+  {co: 'Placeholder & Co', when: 'posted 4 days ago', text: 'Social media manager. Reachable 24/7 because “we’re a family here”. Pay: exposure, plus free coffee on Fridays.', votes: 276}
+];
+
+const PHRASES = ['We’ll keep your CV on file', 'You’re over­qualified', 'Went with an internal candidate', 'Looking for someone with passion', 'Ghosted after the final round', 'Unpaid trial day', 'Entry level, 5+ years', 'Salary: compet­itive', 'We’re like a family', 'Fast-paced environ­ment', 'What’s your biggest weakness?', 'Rejected by auto-email', 'Re­scheduled 3 times', 'Free “test project”', 'Not a culture fit'];
+const FREE = -1, FREE_AT = 5;
+const LINES = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15], [0, 5, 10, 15], [3, 6, 9, 12]];
+function bingoOrder(shuffle) {
+  const idx = PHRASES.map((_, i) => i);
+  if (shuffle) for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  idx.splice(FREE_AT, 0, FREE);
+  return idx;
+}
+
+const JOKES = [
+  () => 'The ATS rejected me before a human could. Honestly, respect the efficiency.',
+  () => 'My CV has more versions than my phone’s operating system.',
+  () => `Applied to ${S.totals.applied} jobs. Heard back from my mum.`,
+  d => `Current title: ${titleFor(d)}. Salary: vibes.`,
+  () => `Ghosted ${S.totals.ghosted} times. Starting to think I’m the ghost.`,
+  () => 'Still here. Still sending CVs at 3am.'
+];
+const NICKS = ['CoverLetterPoet', 'InterviewSurvivor', 'RejectionCollector', 'PortfolioPending', 'OpenToWorkOwl', 'CVsAtMidnight', 'FrappeFanatic', 'Ghosted_Twice'];
+const CRISIS = /\b(hopeless|worthless|give up on (life|everything)|giving up on (life|everything)|end it all|end my life|can[’']?t go on|kill myself|suicid\w*|want to die|no reason to live|better off dead)\b/i;
+
+/* state */
+const KEY = 'iamunemployed-prototype-v1';
+let S;
+const UI = {board: 'legends', cat: 'All', joke: 0, backConfirm: false, resetArm: false, pending: null};
+const zeroTotals = () => ({applied: 0, interview: 0, course: 0, coffee: 0, workout: 0, helped: 0, rejected: 0, ghosted: 0});
+function baseState() {
+  const t = todayStr();
+  return {v: 1, demo: false, tab: 'home', nick: 'NewMember', industry: 'Other', country: 'UK', startDate: t, publicBoard: false, calm: false,
+    streak: 0, lastCheckin: null, weekKey: weekKeyOf(t), weekMoves: 0, today: {date: t, mood: null, moves: {}}, totals: zeroTotals(),
+    claimed: {}, unicornVote: null, bingo: {order: bingoOrder(false), marks: [FREE_AT], won: false},
+    escaped: false, escapedDays: null, escapeNo: null, escapeRole: '', escapeWall: true, escapeDate: null, sequel: false, mentor: false,
+    cheers: 0, cheersTarget: 0, peak: 0, myPosts: [], reactions: {}};
+}
+function demoState() {
+  const t = todayStr();
+  return Object.assign(baseState(), {demo: true, nick: 'SendsCVsAt3am', industry: 'Marketing', country: 'UK', startDate: addDays(t, -147), publicBoard: true,
+    streak: 20, lastCheckin: addDays(t, -1), weekMoves: 27,
+    totals: {applied: 83, interview: 6, course: 5, coffee: 9, workout: 22, helped: 14, rejected: 41, ghosted: 8}, claimed: {boss: true}});
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && s.v === 1) return Object.assign(baseState(), s); }
+  } catch (e) { /* storage unavailable: fall back to the sample member */ }
+  return demoState();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+const days = () => S.escaped ? (S.escapedDays || 0) : Math.max(0, diffDays(S.startDate, todayStr()));
+function normalize() {
+  const t = todayStr();
+  if (!S.today || S.today.date !== t) S.today = {date: t, mood: null, moves: {}};
+  if (S.lastCheckin && S.lastCheckin !== t && S.lastCheckin !== addDays(t, -1)) S.streak = 0;
+  const wk = weekKeyOf(t);
+  if (S.weekKey !== wk) { S.weekKey = wk; S.weekMoves = 0; }
+  if (!S.bingo || !Array.isArray(S.bingo.order) || S.bingo.order.length !== 16) S.bingo = {order: bingoOrder(false), marks: [FREE_AT], won: false};
+  S.peak = Math.max(S.peak || 0, days());
+}
+function touch() {
+  const t = todayStr();
+  if (S.lastCheckin === t) return;
+  S.streak = S.lastCheckin === addDays(t, -1) ? S.streak + 1 : 1;
+  S.lastCheckin = t;
+}
+
+/* badges */
+const peakDays = () => Math.max(days(), S.escapedDays || 0, S.peak || 0);
+const BADGES = [
+  {id: 'centurion', name: 'Centurion', desc: '100 days in the queue', prog: () => [Math.min(peakDays(), 100), 100]},
+  {id: 'ghost', name: 'Ghost Whisperer', desc: 'Ghosted by 10 companies', prog: () => [Math.min(S.totals.ghosted || 0, 10), 10]},
+  {id: 'thick', name: 'Thick Skin', desc: '50 rejections logged', prog: () => [Math.min(S.totals.rejected || 0, 50), 50]},
+  {id: 'helper', name: 'Helping Hand', desc: 'Helped someone 15 times', prog: () => [Math.min(S.totals.helped || 0, 15), 15]},
+  {id: 'boss', name: 'Final Boss Survivor', desc: 'Five interview rounds for one job', claim: true},
+  {id: 'speedrun', name: 'Speedrun Rejection', desc: 'Rejected within 3 minutes of applying', claim: true},
+  {id: 'exposure', name: 'Paid in Exposure', desc: 'Offered an unpaid “opportunity”', claim: true},
+  {id: 'unicorn', name: 'Unicorn Spotter', desc: 'Voted for Unicorn of the Week', earned: () => S.unicornVote !== null},
+  {id: 'bingo', name: 'Bingo!', desc: 'A full line in Rejection Bingo', earned: () => !!S.bingo.won},
+  {id: 'escapee', name: 'Escapee', desc: 'Landed a job', earned: () => !!S.escapeNo},
+  {id: 'sequel', name: 'The Sequel', desc: 'Came back after an escape, with zero shame', earned: () => !!S.sequel},
+  {id: 'liberator', name: 'Liberator', desc: 'Someone got hired through your referral', soon: true}
+];
+function isEarned(b) {
+  if (b.claim) return !!S.claimed[b.id];
+  if (b.prog) { const [n, m] = b.prog(); return n >= m; }
+  if (b.earned) return b.earned();
+  return false;
+}
+const earnedIds = () => new Set(BADGES.filter(isEarned).map(b => b.id));
+function withBadges(fn) {
+  const before = earnedIds();
+  fn(); normalize();
+  const after = earnedIds();
+  save();
+  return BADGES.filter(b => after.has(b.id) && !before.has(b.id)).map(b => b.name);
+}
+function unlockedMsg(names) {
+  if (!names.length) return '';
+  const list = names.join(', ');
+  return ` Badge unlocked: ${list}${/[.!?]$/.test(list) ? '' : '.'}`;
+}
+
+/* small helpers */
+const hash = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.codePointAt(0)) >>> 0; return h; };
+const avClass = n => 'abcd'[hash(n) % 4];
+function initials(n) {
+  const s = String(n || '');
+  const letters = s.replace(/[^\p{L}]/gu, '');
+  if (!letters) return '?';
+  const cap = s.slice(1).match(/\p{Lu}/u);
+  return (letters[0] + (cap ? cap[0] : (letters[1] || ''))).toUpperCase();
+}
+function ago(ts) {
+  const s = Math.max(0, (Date.now() - ts) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm';
+  if (s < 86400) return Math.floor(s / 3600) + 'h';
+  return Math.floor(s / 86400) + 'd';
+}
+function whenText(dateStr) {
+  if (!dateStr) return '';
+  const n = diffDays(dateStr, todayStr());
+  return n <= 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`;
+}
+function grindRows() {
+  const rows = GRIND.map(([nick, moves, streak]) => ({nick, moves, streak}));
+  if (!S.escaped) rows.push({nick: S.nick, moves: S.weekMoves, streak: S.streak, me: true});
+  rows.sort((a, b) => (b.moves - a.moves) || ((a.me ? 1 : 0) - (b.me ? 1 : 0)));
+  return rows;
+}
+const myRank = () => grindRows().findIndex(r => r.me) + 1;
+const winningLines = () => LINES.filter(l => l.every(i => S.bingo.marks.includes(i)));
+const memeCard = (top, big, left, right) => `<div class="meme-card"><span class="top">${esc(top)}</span><span class="big">${esc(big)}</span><span class="foot"><span>${esc(left)}</span><span>${esc(right)}</span></span></div>`;
+const cheersText = () => S.cheers > 0 ? `${fmt(S.cheers)} ${S.cheers === 1 ? 'person has' : 'people have'} congratulated you` : 'The congratulations are coming in…';
+const calmBox = what => `<div class="calm-box"><h2>Calm mode is on</h2><p class="hint">${what} are hidden for today. Take it easy. You can turn this off whenever you like.</p><button class="btn ghost small" data-action="calm-off" data-k="calm-off">Turn off calm mode</button></div>`;
+function helpHTML() {
+  const lines = HELP[S.country] || [];
+  return `<div class="helpbox">${lines.map(([n, t]) => `<div class="line"><b>${n}</b><span>${t}</span></div>`).join('')}<div class="line"><b><a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a></b><span>${lines.length ? 'Free, confidential lines in other countries.' : 'Free, confidential lines in your country.'}</span></div></div>`;
+}
+
+/* views */
+function homeHTML() {
+  const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
+  const pct = next ? Math.min(100, Math.round(((d - cur[0]) / (cur[1] - cur[0] + 1)) * 100)) : 100;
+  const toNext = next ? next[0] - d : 0;
+  const logged = Object.entries(S.today.moves);
+  const logLine = logged.length ? 'Today: ' + logged.map(([k, n]) => moveLabel(k) + (n > 1 ? ' ×' + n : '')).join(' · ') : 'Nothing logged yet today.';
+  return `
+  ${S.demo ? `<div class="demo-note"><span>Sample member with example numbers.</span><button class="linkish" data-action="restart" data-k="demo-restart">Start as yourself</button></div>` : ''}
+  <div class="calm-only calm-note">Calm mode is on. Memes, titles and leaderboards are hidden. One step at a time.</div>
+  <div class="tk">
+    <div class="tk-label">Your number</div>
+    <span class="led big">${pad(d)}</span>
+    <div class="tk-sub">days in the queue</div>
+    <div class="tk-pills joke"><span class="pill on-tk">${titleFor(d)}</span>${S.escapeNo ? '<span class="pill on-tk">Escapee</span>' : ''}</div>
+    <div class="progress joke">
+      <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+      <span>${next ? `${toNext} ${toNext === 1 ? 'day' : 'days'} until ${next[2]}` : 'Top rank. Nothing ranks above Living Legend.'}</span>
+    </div>
+  </div>
+  <div class="stats">
+    <div><b>${S.streak}</b><span>day streak</span></div>
+    <div><b>${S.weekMoves}</b><span>moves this week</span></div>
+    <div class="joke"><b>#${myRank()}</b><span>Grind of the Week</span></div>
+  </div>
+  <div class="block">
+    <h2>Today’s check-in</h2>
+    <p class="hint">How are you feeling?</p>
+    <div class="moods">${MOODS.map(([k, e, l]) => `<button class="mood" data-action="mood" data-mood="${k}" data-k="mood-${k}" aria-pressed="${S.today.mood === k}" aria-label="${l}" title="${l}">${e}</button>`).join('')}</div>
+    <p class="hint">Log a move. Rejections count too.</p>
+    <div class="chips">${MOVES.map(([k, l]) => `<button class="chip" data-action="move" data-move="${k}" data-k="move-${k}">${l}${S.today.moves[k] ? `<span class="n">${S.today.moves[k]}</span>` : ''}</button>`).join('')}</div>
+    <p class="log">${esc(logLine)}</p>
+  </div>
+  <div class="block joke">
+    <h2>Share my day</h2>
+    <p class="hint">Turn today into a meme card for TikTok or Instagram.</p>
+    <button class="btn ticket" data-action="open-share" data-k="open-share">Make my card</button>
+  </div>
+  <div class="block">
+    <h2>Got a job?</h2>
+    <p class="hint">Leave the queue in style. Everyone gets to celebrate with you.</p>
+    <button class="btn escape" data-action="open-escape" data-k="open-escape">I escaped!</button>
+  </div>`;
+}
+
+function escapedHomeHTML() {
+  return `
+  <div class="tk escaped">
+    <div class="tk-label">iWasUnemployed</div>
+    <span class="led big ok">${pad(S.escapedDays)}</span>
+    <div class="tk-sub">days in the queue</div>
+    <div class="tk-pills"><span class="pill on-esc">Escapee #${fmt(S.escapeNo)}</span>${S.escapeRole ? `<span class="pill on-esc">${esc(S.escapeRole)}</span>` : ''}</div>
+    <p class="cheers" data-cheers-home>${cheersText()}</p>
+  </div>
+  <div class="block">
+    <h2>Mentor mode</h2>
+    <p class="hint">You know the queue from the inside. Help the people still in it.</p>
+    <label class="set" for="set-mentor"><span><b>Available as a mentor</b><small>Members can ask you for CV reviews and mock interviews.</small></span><input type="checkbox" class="switch" role="switch" id="set-mentor" data-k="set-mentor" ${S.mentor ? 'checked' : ''}></label>
+    <form class="field" id="hire-form" novalidate>
+      <label for="hire-role">Is your company hiring?</label>
+      <div class="row"><input id="hire-role" maxlength="40" placeholder="e.g. Junior Designer" autocomplete="off"><button class="btn small" type="submit">Post</button></div>
+      <small>Your post gets a Referral tag in the Feed.</small>
+    </form>
+  </div>
+  <div class="block">
+    <h2>Back in the queue?</h2>
+    <p class="hint">Jobs don’t always work out. No shame. Your counter restarts and your Escapee badge stays.</p>
+    ${UI.backConfirm
+      ? `<div class="row fill"><button class="btn ghost" data-action="back-no" data-k="back-no">Cancel</button><button class="btn" data-action="back-yes" data-k="back-yes">Yes, I’m back</button></div>`
+      : `<button class="btn ghost" data-action="back-ask" data-k="back-ask">I’m back</button>`}
+  </div>`;
+}
+
+function rowHTML(rk, nick, pill, right, me) {
+  return `<li class="${me ? 'me' : ''}"><span class="rk">${rk}</span><span class="who"><b>${esc(nick)}${me ? ' <em>(you)</em>' : ''}</b>${pill}${me && !S.publicBoard ? '<small>Only visible to you</small>' : ''}</span>${right}</li>`;
+}
+function boardsHTML() {
+  if (S.calm) return calmBox('Leaderboards');
+  const tabs = [['legends', 'Legends'], ['escapees', 'Escapees'], ['grind', 'Grind']];
+  const seg = `<div class="seg" role="tablist" aria-label="Leaderboards">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${UI.board === k}" data-action="board" data-board="${k}" data-k="board-${k}">${l}</button>`).join('')}</div>`;
+  const banner = S.publicBoard ? '' : `<div class="banner"><span>You’re private right now. Your row is only visible to you.</span><button class="btn small" data-action="join-board" data-k="join-board">Join under my nickname</button></div>`;
+  let title, list, note;
+  if (UI.board === 'escapees') {
+    title = 'The Escapees';
+    const rows = ESCAPEES.map(([no, nick, d, when]) => ({no, nick, d, when}));
+    if (S.escapeNo && S.escapeWall) rows.unshift({no: S.escapeNo, nick: S.nick, d: S.escapedDays, when: whenText(S.escapeDate), me: true});
+    list = rows.map(r => rowHTML('#' + fmt(r.no), r.nick, '<span class="pill esc">Escapee</span>', `<span class="right"><span class="led ok">${pad(r.d)}</span><small>${esc(r.when)}</small></span>`, r.me)).join('');
+    note = 'Days in the queue before escaping. Every escape is a party for everyone. Example data.';
+  } else if (UI.board === 'grind') {
+    title = 'Grind of the Week';
+    const rows = grindRows();
+    list = rows.map((r, i) => rowHTML(String(i + 1), r.nick, '', `<span class="right"><span class="led">${pad(r.moves, 3)}</span><small>${r.streak}-day streak</small></span>`, r.me)).join('');
+    const rank = myRank();
+    let lead = '';
+    if (rank === 1) lead = 'You’re #1 this week. ';
+    else if (rank > 1) { const need = rows[0].moves - S.weekMoves + 1; lead = `${need} more ${need === 1 ? 'move' : 'moves'} to take #1. `; }
+    note = lead + 'Every move counts, rejections included. Resets Monday, local time. Example data.';
+  } else {
+    title = 'Legends of the Queue';
+    const rows = LEGENDS.map(([nick, d]) => ({nick, d}));
+    if (!S.escaped) rows.push({nick: S.nick, d: days(), me: true});
+    rows.sort((a, b) => (b.d - a.d) || ((a.me ? 1 : 0) - (b.me ? 1 : 0)));
+    list = rows.map((r, i) => rowHTML(String(i + 1), r.nick, `<span class="pill">${titleFor(r.d)}</span>`, `<span class="led">${pad(r.d)}</span>`, r.me)).join('');
+    note = 'The longer the wait, the more ridiculous the title. Example data.';
+  }
+  return `${seg}<h2>${title}</h2>${banner}<ol class="board">${list}</ol><p class="note">${note}</p>`;
+}
+
+function postHTML(p) {
+  const anon = !!p.anon;
+  const nick = anon ? 'Anonymous' : p.nick;
+  const pill = p.escapee ? '<span class="pill esc">Escapee</span>' : `<span class="pill joke">${titleFor(p.days)}</span>`;
+  const tag = p.kind === 'hiring' ? '<span class="tag">Referral</span>' : '';
+  const sub = `${p.escapee ? `Escaped after ${p.days} days` : `Day ${p.days}`} · ${esc(p.cat)} · ${esc(p.mine ? ago(p.ts) : p.ago)}`;
+  const body = p.kind === 'meme' ? memeCard(p.meme.top, p.meme.big, titleFor(p.days), p.meme.tag) : `<p>${esc(p.text)}</p>`;
+  const mineR = S.reactions[p.id] || {};
+  const reacts = (REACTS[p.kind] || REACTS.default).map(r => {
+    const on = !!mineR[r];
+    const live = p.mine && p.kind === 'escape' && r === 'congrats';
+    const base = live ? S.cheers : ((p.r && p.r[r]) || 0);
+    return `<button class="react" data-action="react" data-post="${esc(p.id)}" data-r="${r}" data-base="${live ? 'cheers' : base}" data-k="react-${esc(p.id)}-${r}" aria-pressed="${on}">${REACT_LABEL[r]}<span${live ? ' data-cheers-n' : ''}>${fmt(base + (on ? 1 : 0))}</span></button>`;
+  }).join('');
+  return `<article class="post ${p.kind || ''}">
+    <header><span class="av ${anon ? 'x' : avClass(nick)}" aria-hidden="true">${anon ? '?' : esc(initials(nick))}</span>
+      <div class="meta"><div class="name">${esc(nick)}${p.mine ? ' <span class="you">(you)</span>' : ''} ${pill} ${tag}</div><div class="sub">${sub}</div></div></header>
+    ${body}
+    <div class="reacts">${reacts}${p.mine ? '' : `<span class="replies">${p.replies} replies</span>`}</div>
+  </article>`;
+}
+function feedHTML() {
+  if (S.calm && UI.cat === 'Memes') UI.cat = 'All';
+  const cats = ['All', ...CATS].filter(c => !(S.calm && c === 'Memes'));
+  const chips = cats.map(c => `<button class="chip" data-action="cat" data-cat="${esc(c)}" data-k="cat-${esc(c)}" aria-pressed="${UI.cat === c}">${esc(c)}</button>`).join('');
+  const mine = S.myPosts.slice().reverse().map(p => Object.assign({mine: true}, p));
+  const all = mine.concat(POSTS).filter(p => (UI.cat === 'All' || p.cat === UI.cat) && !(S.calm && p.kind === 'meme'));
+  const posts = all.length ? all.map(postHTML).join('') : `<p class="hint">Nothing in ${esc(UI.cat)} yet. Be the first to post.</p>`;
+  return `<button class="compose-btn" data-action="open-compose" data-k="open-compose"><span class="av ${avClass(S.nick)}" aria-hidden="true">${esc(initials(S.nick))}</span><span>Share something with the queue…</span></button>
+  <div class="chips scroll" role="group" aria-label="Categories">${chips}</div>
+  <p class="note">Example posts from made-up members, plus anything you post.</p>
+  ${posts}`;
+}
+
+function funHTML() {
+  if (S.calm) return calmBox('Games');
+  const month = new Date().toLocaleString('en-US', {month: 'long'});
+  const voted = S.unicornVote;
+  const total = ADS.reduce((s, a, i) => s + a.votes + (voted === i ? 1 : 0), 0);
+  const ads = ADS.map((a, i) => {
+    const v = a.votes + (voted === i ? 1 : 0);
+    const pct = Math.round((v / total) * 100);
+    return `<article class="ad ${voted === i ? 'voted' : ''}">
+      <div class="co"><span class="blur" aria-hidden="true">${esc(a.co)}</span><span class="sr">Company name hidden</span> · ${a.when}</div>
+      <p class="ad-text">“${esc(a.text)}”</p>
+      ${voted === null
+        ? `<button class="btn small ticket" data-action="vote" data-ad="${i}" data-k="vote-${i}">Vote for this one</button>`
+        : `<div class="votes"><div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><span>${pct}% · ${fmt(v)} votes${voted === i ? ' · your vote' : ''}</span></div>`}
+    </article>`;
+  }).join('');
+  const win = winningLines();
+  const winCells = new Set(win.flat());
+  const cells = S.bingo.order.map((pi, idx) => {
+    const free = pi === FREE;
+    const on = free || S.bingo.marks.includes(idx);
+    return `<button class="cell ${free ? 'free' : ''} ${winCells.has(idx) ? 'win' : ''}" data-action="cell" data-cell="${idx}" data-k="cell-${idx}" aria-pressed="${on}" ${free ? 'disabled' : ''}>${free ? 'STILL HERE' : esc(PHRASES[pi])}</button>`;
+  }).join('');
+  return `
+  <h2>Unicorn of the Week</h2>
+  <p class="hint">Vote for the most absurd job ad. The winner becomes Friday’s meme. Company names are hidden automatically. Example ads.</p>
+  <div class="stack">${ads}</div>
+  <h2>Rejection Bingo · ${month}</h2>
+  <p class="hint">Tap everything that happened to you this month. Get a full line to win.</p>
+  <div class="bingo">${cells}</div>
+  ${win.length ? `<div class="block win-banner"><strong>BINGO!</strong><p class="hint">A full line of corporate nonsense. Share it with the queue.</p><button class="btn" data-action="copy-bingo" data-k="copy-bingo">Copy caption</button></div>` : ''}
+  <button class="btn ghost" data-action="bingo-new" data-k="bingo-new">New card</button>`;
+}
+
+function meHTML() {
+  const d = days();
+  const since = parseYmd(S.startDate).toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric'});
+  const status = S.escaped ? `Escaped after ${S.escapedDays} days` : `In the queue since ${since}`;
+  const base = S.escaped ? S.escapedDays : d;
+  const tiles = [[S.totals.applied, 'applications'], [S.totals.interview, 'interviews'], [S.totals.rejected, 'rejections'], [S.totals.ghosted, 'ghostings'], [S.totals.course, 'courses'], [Math.round(base * 0.95), 'iced coffees (est.)']];
+  const earned = earnedIds();
+  const badges = BADGES.map(b => {
+    const got = earned.has(b.id);
+    let state;
+    if (got) state = '<span class="state">Earned</span>';
+    else if (b.claim) state = `<button class="btn small ghost" data-action="claim" data-badge="${b.id}" data-k="claim-${b.id}">It happened to me</button>`;
+    else if (b.prog) { const [n, m] = b.prog(); state = `<div class="bar" aria-hidden="true"><i style="width:${Math.round((n / m) * 100)}%"></i></div><span class="state">${n} / ${m}</span>`; }
+    else if (b.soon) state = '<span class="state">Comes with referrals</span>';
+    else state = '<span class="state">Locked</span>';
+    return `<div class="badge ${got ? 'earned' : ''}"><b>${b.name}</b><small>${esc(b.desc)}</small>${state}</div>`;
+  }).join('');
+  const countryOpts = COUNTRIES.map(([c, n]) => `<option value="${c}"${S.country === c ? ' selected' : ''}>${n}</option>`).join('');
+  return `
+  <div class="profile"><span class="av big ${avClass(S.nick)}" aria-hidden="true">${esc(initials(S.nick))}</span>
+    <div class="pmeta"><h2>${esc(S.nick)}</h2><p class="hint">${status} · ${esc(S.industry)} · ${countryName(S.country)}</p>
+      <div class="pills">${S.escaped ? '' : `<span class="pill joke">${titleFor(d)}</span>`}${S.escapeNo ? '<span class="pill esc">Escapee</span>' : ''}${S.escaped && S.mentor ? '<span class="pill">Mentor</span>' : ''}</div></div></div>
+  <h3>Your Wrapped so far</h3>
+  <div class="wrapped">${tiles.map(([n, l]) => `<div><b>${fmt(n)}</b><span>${l}</span></div>`).join('')}</div>
+  <h3>Badges</h3>
+  <div class="badges">${badges}</div>
+  <h3>Settings</h3>
+  <div class="settings">
+    <label class="set" for="set-public"><span><b>Show me on public leaderboards</b><small>Always under your nickname. When off, only you see your row.</small></span><input type="checkbox" class="switch" role="switch" id="set-public" data-k="set-public"${S.publicBoard ? ' checked' : ''}></label>
+    <label class="set" for="set-calm"><span><b>Not in the mood for jokes today</b><small>Hides memes, titles, leaderboards and games.</small></span><input type="checkbox" class="switch" role="switch" id="set-calm" data-k="set-calm"${S.calm ? ' checked' : ''}></label>
+    <div class="set"><span><b><label for="set-country">Country</label></b><small>Sets your helplines and resources.</small></span><select id="set-country" data-k="set-country">${countryOpts}</select></div>
+  </div>
+  <h3>Need to talk to someone?</h3>
+  ${helpHTML()}
+  <h3>Try this</h3>
+  <ul class="tips"><li>Log moves on Queue and climb Grind of the Week.</li><li>Make a meme card with Share my day.</li><li>Post in the Feed, anonymously if you like.</li><li>Get a full line in Rejection Bingo.</li><li>Turn on calm mode above.</li><li>Tap I escaped! for the ceremony.</li></ul>
+  <div class="row wrap fill"><button class="btn ghost small" data-action="restart" data-k="restart">Start as a new user</button><button class="btn ghost small" data-action="reset" data-k="reset">${UI.resetArm ? 'Tap again to reset' : 'Reset demo data'}</button></div>
+  <p class="note">This prototype saves only in this browser. Nothing you type is sent anywhere.</p>`;
+}
+
+const VIEWS = {home: () => (S.escaped ? escapedHomeHTML() : homeHTML()), boards: boardsHTML, feed: feedHTML, fun: funHTML, me: meHTML};
+
+/* rendering */
+function renderChrome() {
+  const dev = $('#device');
+  dev.dataset.calm = String(!!S.calm);
+  dev.dataset.escaped = String(!!S.escaped);
+  $('#logo-word').textContent = S.escaped ? 'WasUnemployed' : 'AmUnemployed';
+  $('#logo-sr').textContent = S.escaped ? 'iWasUnemployed' : 'iAmUnemployed';
+  $('#streak').textContent = S.streak;
+  $$('.tab').forEach(t => { if (t.dataset.tab === S.tab) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  $$('.view').forEach(v => { v.hidden = v.dataset.view !== S.tab; });
+}
+function render() {
+  normalize();
+  if (!VIEWS[S.tab]) S.tab = 'home';
+  renderChrome();
+  const a = document.activeElement;
+  const key = a && a.dataset ? a.dataset.k : null;
+  const v = $('#view-' + S.tab);
+  v.innerHTML = VIEWS[S.tab]();
+  if (key) { const el = $$('[data-k]', v).find(e => e.dataset.k === key); if (el) el.focus({preventScroll: true}); }
+}
+function go(tab) { S.tab = tab; save(); render(); $('#views').scrollTop = 0; }
+
+let toastTimer = 0;
+function toast(msg) {
+  const el = $('#toast');
+  el.hidden = true; void el.offsetWidth;
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+}
+
+function openOv(id) {
+  const o = $('#' + id);
+  o._ret = document.activeElement;
+  o.hidden = false;
+  const f = o.querySelector('textarea:not([readonly]), input:not([type="checkbox"]), button:not(.x)');
+  if (f) f.focus({preventScroll: true});
+}
+function closeOv(o) {
+  o.hidden = true;
+  const r = o._ret;
+  if (r && document.contains(r) && r.offsetParent !== null) r.focus({preventScroll: true});
+}
+
+function copyText(text, okMsg) {
+  const fallback = () => { const t = $('#copy-text'); t.value = text; openOv('ov-copy'); t.focus(); t.select(); };
+  try {
+    const p = navigator.clipboard && navigator.clipboard.writeText(text);
+    if (!p) { fallback(); return; }
+    p.then(() => toast(okMsg || 'Caption copied. Paste it with your card.'), fallback);
+  } catch (e) { fallback(); }
+}
+
+/* share card */
+const shareJoke = () => JOKES[UI.joke % JOKES.length](days());
+function renderShare() { const d = days(); $('#share-card').innerHTML = memeCard(`iAmUnemployed · DAY ${d}`, shareJoke(), titleFor(d), '#iAmUnemployed'); }
+const shareCaption = () => `Day ${days()} of being unemployed. ${shareJoke()} #iAmUnemployed #dayXunemployed`;
+function bingoCaption() {
+  const month = new Date().toLocaleString('en-US', {month: 'long'});
+  const line = winningLines()[0] || [];
+  const items = line.map(i => S.bingo.order[i]).filter(pi => pi !== FREE).map(pi => PHRASES[pi].replace(/­/g, ''));
+  return `BINGO! Rejection Bingo, ${month} edition: ${items.join(' / ')}. #iAmUnemployed`;
+}
+const escapeCaption = () => `I’m out. ${S.escapedDays} days in the queue, ${S.totals.applied} applications, ${S.totals.interview} interviews. Escapee #${fmt(S.escapeNo)}. #iAmUnemployed #iescaped`;
+
+/* escape ceremony */
+let cheersTimer = 0;
+function updateCheers() {
+  $$('[data-cheers-home]').forEach(el => { el.textContent = cheersText(); });
+  $$('[data-cheers-n]').forEach(el => { const on = el.parentElement.getAttribute('aria-pressed') === 'true'; el.textContent = fmt(S.cheers + (on ? 1 : 0)); });
+}
+function startCheers() {
+  clearInterval(cheersTimer);
+  if (!S.escaped || S.cheers >= S.cheersTarget) return;
+  cheersTimer = setInterval(() => {
+    if (!S.escaped) { clearInterval(cheersTimer); return; }
+    S.cheers = Math.min(S.cheersTarget, S.cheers + 1 + Math.floor(Math.random() * 4));
+    save(); updateCheers();
+    if (S.cheers >= S.cheersTarget) clearInterval(cheersTimer);
+  }, 900);
+}
+function confetti() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = $('#confetti');
+  const r = c.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const ctx = c.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.documentElement);
+  const cols = ['--ticket', '--escape', '--led', '--av-a-ink'].map(v => cs.getPropertyValue(v).trim() || '#F2C230');
+  const P = Array.from({length: 150}, (_, i) => ({x: Math.random() * r.width, y: -Math.random() * r.height * 0.6 - 10, vx: (Math.random() - 0.5) * 1.6, vy: 1.6 + Math.random() * 2.6, a: Math.random() * 6.28, va: (Math.random() - 0.5) * 0.25, w: 5 + Math.random() * 5, h: 8 + Math.random() * 7, col: cols[i % cols.length]}));
+  const t0 = performance.now();
+  const frame = t => {
+    ctx.clearRect(0, 0, r.width, r.height);
+    let alive = false;
+    for (const p of P) {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.02; p.a += p.va;
+      if (p.y < r.height + 20) alive = true;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.col; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+    }
+    if (alive && t - t0 < 7000 && !$('#scr-ceremony').hidden) requestAnimationFrame(frame);
+    else ctx.clearRect(0, 0, r.width, r.height);
+  };
+  requestAnimationFrame(frame);
+}
+
+/* forms */
+function publishPost(p, msg) {
+  S.myPosts.push({id: 'm' + Date.now(), cat: p.cat, text: p.text, anon: p.anon, nick: S.nick, days: days(), escapee: !!S.escaped, ts: Date.now()});
+  save();
+  $('#composer-text').value = '';
+  $('#composer-anon').checked = false;
+  closeOv($('#ov-compose'));
+  UI.cat = 'All';
+  go('feed');
+  toast(msg);
+}
+function onCompose() {
+  const text = $('#composer-text').value.trim();
+  if (!text) { toast('Write something first.'); $('#composer-text').focus(); return; }
+  const p = {cat: $('#composer-cat').value, text, anon: $('#composer-anon').checked};
+  if (CRISIS.test(text)) { UI.pending = p; $('#crisis-help').innerHTML = helpHTML(); openOv('ov-crisis'); return; }
+  publishPost(p, 'Posted to the queue.');
+}
+function onEscape() {
+  const role = $('#esc-role').value.trim().slice(0, 40);
+  const wall = $('#esc-wall').checked;
+  const d = days();
+  const names = withBadges(() => {
+    S.escapedDays = d; S.escaped = true; S.escapeNo = S.escapeNo ? S.escapeNo + 37 : 1285;
+    S.escapeRole = role; S.escapeWall = wall; S.escapeDate = todayStr();
+    S.cheers = 0; S.cheersTarget = 60 + Math.floor(Math.random() * 60);
+    UI.backConfirm = false;
+    if (wall) S.myPosts.push({id: 'm' + Date.now(), kind: 'escape', cat: 'Wins', text: `ESCAPED after ${d} days${role ? ` · ${role}` : ''}. Thank you, queue. I’ll be back as a mentor.`, nick: S.nick, days: d, escapee: true, ts: Date.now()});
+  });
+  closeOv($('#ov-escape'));
+  $('#cer-ticket').innerHTML = `<div class="tk-label">iWasUnemployed</div><span class="led big ok">${pad(d)}</span><div class="tk-sub">days in the queue</div><div class="tk-pills"><span class="pill on-esc">Escapee #${fmt(S.escapeNo)}</span>${role ? `<span class="pill on-esc">${esc(role)}</span>` : ''}</div>`;
+  $('#cer-stats').innerHTML = [[S.totals.applied, 'applications'], [S.totals.interview, 'interviews'], [S.totals.rejected, 'rejections survived'], [Math.round(d * 0.95), 'iced coffees (est.)']].map(([n, l]) => `<div><b>${fmt(n)}</b><span>${l}</span></div>`).join('');
+  $('#cer-badges').textContent = names.length ? `Badge unlocked: ${names.join(', ')}. Your profile now says iWasUnemployed.` : 'Your profile now says iWasUnemployed.';
+  S.tab = 'home'; save(); render();
+  const scr = $('#scr-ceremony');
+  scr.hidden = false; scr.scrollTop = 0;
+  updateCheers();
+  $('#cer-done').focus({preventScroll: true});
+  confetti();
+  startCheers();
+}
+function onHire() {
+  const role = $('#hire-role').value.trim().slice(0, 40);
+  if (!role) { toast('Add the role first.'); $('#hire-role').focus(); return; }
+  S.myPosts.push({id: 'm' + Date.now(), kind: 'hiring', cat: 'Career Change', text: `My company is hiring: ${role}. Message me if you want a referral.`, nick: S.nick, days: S.escapedDays || days(), escapee: true, ts: Date.now()});
+  save();
+  $('#hire-role').value = '';
+  toast('Posted to the Feed. Referrals make the queue shorter.');
+}
+function startOnboarding() {
+  $('#ob-1').hidden = false; $('#ob-form').hidden = true; $('#ob-3').hidden = true;
+  $('#ob-nick').value = '';
+  $('#ob-industry').value = 'Other';
+  $('#ob-country').value = S.country || 'UK';
+  const t = todayStr(), st = $('#ob-start');
+  st.max = t; st.value = addDays(t, -30);
+  $('#ob-public').checked = false;
+  const scr = $('#scr-onboard');
+  scr.hidden = false; scr.scrollTop = 0;
+  $('#ob-1 .btn').focus({preventScroll: true});
+}
+function onOnboard() {
+  const nick = $('#ob-nick').value.trim().replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_.\-]/gu, '').slice(0, 20);
+  if (!nick) { toast('Pick a nickname, or tap Suggest.'); $('#ob-nick').focus(); return; }
+  const t = todayStr();
+  let start = $('#ob-start').value || t;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) start = t;
+  if (start > t) { toast('Your start date can’t be in the future.'); $('#ob-start').focus(); return; }
+  clearInterval(cheersTimer);
+  S = Object.assign(baseState(), {nick, industry: $('#ob-industry').value, country: $('#ob-country').value, startDate: start, publicBoard: $('#ob-public').checked});
+  Object.assign(UI, {board: 'legends', cat: 'All', backConfirm: false, resetArm: false});
+  normalize(); save(); render();
+  const d = days();
+  $('#ob-3').innerHTML = `<div class="tk"><div class="tk-label">Your number</div><span class="led big">${pad(d)}</span><div class="tk-sub">days in the queue</div><div class="tk-pills"><span class="pill on-tk">${titleFor(d)}</span></div></div>
+    <h1>You’re in, ${esc(nick)}.</h1>
+    <p class="hint">Your title gets more ridiculous the longer you wait. The real goal is the Escapees board, and the whole queue is rooting for you.</p>
+    <button class="btn ticket wide" type="button" data-action="ob-share">Share my Day ${d}</button>
+    <button class="btn wide" type="button" data-action="ob-done">Enter the queue</button>`;
+  $('#ob-form').hidden = true; $('#ob-3').hidden = false;
+  $('#scr-onboard').scrollTop = 0;
+  $('#ob-3 .btn').focus({preventScroll: true});
+}
+
+/* actions */
+let resetTimer = 0;
+const A = {
+  tab: el => go(el.dataset.tab),
+  mood(el) {
+    const k = el.dataset.mood;
+    const names = withBadges(() => { S.today.mood = k; touch(); });
+    toast(MOOD_TOAST[k] + unlockedMsg(names)); render();
+  },
+  move(el) {
+    const k = el.dataset.move;
+    const before = myRank();
+    const names = withBadges(() => { S.today.moves[k] = (S.today.moves[k] || 0) + 1; S.totals[k] = (S.totals[k] || 0) + 1; S.weekMoves += 1; touch(); });
+    const after = myRank();
+    let msg = k === 'ghosted' ? `Ghosting logged. Ghost Whisperer ${Math.min(S.totals.ghosted, 10)}/10.` : MOVE_TOAST[k];
+    if (!S.calm && after && after < before) msg += ` You’re now #${after} on Grind of the Week.`;
+    toast(msg + unlockedMsg(names)); render();
+  },
+  'open-share'() { UI.joke = days() % JOKES.length; renderShare(); openOv('ov-share'); },
+  shuffle() { UI.joke = (UI.joke + 1) % JOKES.length; renderShare(); },
+  'copy-share'() { copyText(shareCaption()); },
+  'open-escape'() { $('#esc-role').value = ''; $('#esc-wall').checked = true; openOv('ov-escape'); },
+  close(el) { const o = el.closest('.overlay'); if (o) closeOv(o); },
+  'back-ask'() { UI.backConfirm = true; render(); const b = $('[data-k="back-no"]'); if (b) b.focus({preventScroll: true}); },
+  'back-no'() { UI.backConfirm = false; render(); },
+  'back-yes'() {
+    clearInterval(cheersTimer);
+    const names = withBadges(() => { S.escaped = false; S.sequel = true; S.startDate = todayStr(); S.mentor = false; });
+    UI.backConfirm = false;
+    toast('Welcome back. No shame, and your Escapee badge stays.' + unlockedMsg(names)); render();
+  },
+  board(el) { UI.board = el.dataset.board; render(); },
+  'join-board'() { S.publicBoard = true; save(); toast(`You’re on the boards as ${S.nick}.`); render(); },
+  cat(el) { UI.cat = el.dataset.cat; render(); },
+  'open-compose'() { openOv('ov-compose'); },
+  react(el) {
+    const id = el.dataset.post, r = el.dataset.r;
+    const m = S.reactions[id] || (S.reactions[id] = {});
+    m[r] = !m[r]; save();
+    el.setAttribute('aria-pressed', String(m[r]));
+    const base = el.dataset.base === 'cheers' ? S.cheers : Number(el.dataset.base);
+    el.querySelector('span').textContent = fmt(base + (m[r] ? 1 : 0));
+  },
+  vote(el) {
+    const names = withBadges(() => { S.unicornVote = Number(el.dataset.ad); });
+    toast('Vote counted. The winner goes out on Friday.' + unlockedMsg(names)); render();
+  },
+  cell(el) {
+    const i = Number(el.dataset.cell), m = S.bingo.marks;
+    const before = winningLines().length;
+    const at = m.indexOf(i);
+    if (at >= 0) m.splice(at, 1); else m.push(i);
+    const after = winningLines().length;
+    const names = withBadges(() => { if (after > 0) S.bingo.won = true; });
+    if (after > before) toast('BINGO! A full line of corporate nonsense.' + unlockedMsg(names));
+    render();
+  },
+  'copy-bingo'() { copyText(bingoCaption()); },
+  'bingo-new'() { S.bingo.order = bingoOrder(true); S.bingo.marks = [FREE_AT]; save(); toast('Fresh card. Good luck out there.'); render(); },
+  claim(el) {
+    const b = BADGES.find(x => x.id === el.dataset.badge);
+    if (!b) return;
+    withBadges(() => { S.claimed[b.id] = true; });
+    toast(`Badge unlocked: ${b.name}. Sorry that happened.`); render();
+  },
+  restart() { startOnboarding(); },
+  reset() {
+    if (!UI.resetArm) {
+      UI.resetArm = true; render();
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => { UI.resetArm = false; if (S.tab === 'me') render(); }, 3500);
+      return;
+    }
+    clearTimeout(resetTimer); clearInterval(cheersTimer);
+    S = demoState();
+    Object.assign(UI, {board: 'legends', cat: 'All', backConfirm: false, resetArm: false});
+    save(); go('home'); toast('Demo data reset.');
+  },
+  'calm-off'() { S.calm = false; save(); toast('Calm mode off.'); render(); },
+  'ob-next'() { $('#ob-1').hidden = true; $('#ob-form').hidden = false; $('#scr-onboard').scrollTop = 0; $('#ob-nick').focus({preventScroll: true}); },
+  'ob-cancel'() { $('#scr-onboard').hidden = true; },
+  'ob-suggest'() { $('#ob-nick').value = NICKS[Math.floor(Math.random() * NICKS.length)]; },
+  'ob-share'() { UI.joke = 0; renderShare(); openOv('ov-share'); },
+  'ob-done'() { $('#scr-onboard').hidden = true; go('home'); toast('Welcome to the queue. Log your first move.'); },
+  'copy-escape'() { copyText(escapeCaption()); },
+  'cer-done'() { $('#scr-ceremony').hidden = true; go('home'); },
+  'crisis-edit'() { closeOv($('#ov-crisis')); $('#composer-text').focus(); },
+  'crisis-post'() { const p = UI.pending; UI.pending = null; closeOv($('#ov-crisis')); if (p) publishPost(p, 'Posted. You’re not alone in this.'); }
+};
+
+/* events */
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (!(t instanceof Element)) return;
+  if (t.classList.contains('overlay')) { closeOv(t); return; }
+  const el = t.closest('[data-action]');
+  if (!el || el.disabled) return;
+  const fn = A[el.dataset.action];
+  if (fn) fn(el, e);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'set-public') { S.publicBoard = t.checked; save(); toast(t.checked ? `You’re on the boards as ${S.nick}.` : 'You’re private. Only you see your row.'); }
+  else if (t.id === 'set-calm') { S.calm = t.checked; save(); render(); toast(t.checked ? 'Calm mode on. Take it easy today.' : 'Calm mode off.'); }
+  else if (t.id === 'set-country') { S.country = t.value; save(); render(); toast(`Helplines updated for ${countryName(S.country)}.`); }
+  else if (t.id === 'set-mentor') { S.mentor = t.checked; save(); toast(t.checked ? 'You’re listed as a mentor. Thank you.' : 'Mentor mode off.'); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const id = e.target.id;
+  if (id === 'compose-form') onCompose();
+  else if (id === 'escape-form') onEscape();
+  else if (id === 'hire-form') onHire();
+  else if (id === 'ob-form') onOnboard();
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const open = $$('.overlay').filter(o => !o.hidden);
+  if (open.length) closeOv(open[open.length - 1]);
+});
+
+/* start */
+$('#composer-cat').innerHTML = CATS.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+$('#ob-industry').innerHTML = INDUSTRIES.map(c => `<option value="${c}">${c}</option>`).join('');
+$('#ob-country').innerHTML = COUNTRIES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+S = load();
+normalize(); save();
+render();
+if (S.escaped) startCheers();
+})();
+</script>

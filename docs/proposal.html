@@ -1,0 +1,402 @@
+<title>iAmUnemployed</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one reading column, the "now serving" queue ticket as the recurring motif for counters */
+:root{
+  --bg:#EEF1F4; --paper:#FFFFFF; --ink:#18212C; --muted:#5A6676; --line:#D5DCE4;
+  --ticket:#F2C230; --ticket-ink:#2A2100; --escape:#1B7F67; --escape-soft:#DCF1EA;
+  --led:#C8361B; --led-bg:#1A1412; --led-ok:#5BE3B8; --warn-soft:#FBEFD2;
+  --f-display:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-body:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --escape:#4CC3A2; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908; --led-ok:#5BE3B8; --warn-soft:#3A2F12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --escape:#4CC3A2; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908; --led-ok:#5BE3B8; --warn-soft:#3A2F12; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.62;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;padding-block:48px 80px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.2rem,7vw,4rem);font-weight:900;letter-spacing:-.02em;overflow-wrap:anywhere}
+h2{font-size:clamp(1.5rem,3.6vw,2rem);font-weight:800;margin-bottom:14px}
+h3{font-size:1.15rem;font-weight:700;margin-bottom:6px}
+p{margin:0 0 14px;max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.2rem;color:var(--muted);max-width:60ch;margin-top:14px}
+section{margin-top:64px}
+
+.hero{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}
+.ticket{background:var(--ticket);color:var(--ticket-ink);padding:16px 20px 18px;border-radius:6px;min-width:170px;
+  position:relative;text-align:center;font-family:var(--f-mono);transform:rotate(2deg)}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.ticket::before{left:-8px}.ticket::after{right:-8px}
+.ticket small{display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.ticket b{display:block;font-size:2.6rem;line-height:1.1}
+@media (max-width:620px){.hero{grid-template-columns:1fr}.ticket{justify-self:start}}
+
+.pitch{margin-top:36px;border-top:2px solid var(--ink);border-bottom:1px solid var(--line);padding-block:18px;font-size:1.15rem;font-weight:500}
+.callout{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-top:18px}
+.callout p:last-child{margin-bottom:0}
+
+.board{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:20px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding:10px;border-bottom:1px solid var(--line)}
+.tabs button{font:600 .9rem var(--f-body);color:var(--muted);background:none;border:1px solid transparent;border-radius:999px;padding:6px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--ticket);outline-offset:2px}
+.board-body{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{font:600 .72rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 14px}
+td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:middle}
+td.rank{font-family:var(--f-mono);color:var(--muted);width:40px}
+.nick{font-weight:700}
+.led{font-family:var(--f-mono);font-weight:700;background:var(--led-bg);color:var(--led);padding:3px 8px;border-radius:4px;letter-spacing:.06em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.led.ok{color:var(--led-ok)}
+.pill{display:inline-block;font-size:.78rem;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--line);white-space:nowrap}
+.pill.esc{background:var(--escape-soft);color:var(--escape);border-color:transparent}
+.board-note{font-size:.82rem;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line);margin:0}
+
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:18px}
+.tier{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px}
+.tier .d{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.tier b{display:block;font-family:var(--f-display);font-size:1.02rem;margin-top:4px;line-height:1.25}
+.tier.esc{background:var(--escape-soft);border-color:transparent}
+.tier.esc b{color:var(--escape)}
+
+.memes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
+.meme{aspect-ratio:1/1;max-width:100%;border-radius:10px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;background:var(--ink);color:var(--bg)}
+.meme .top{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.1em;opacity:.75}
+.meme .big{font-family:var(--f-display);font-weight:900;font-size:1.45rem;line-height:1.15}
+.meme .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--f-mono);font-size:.75rem}
+.meme.y{background:var(--ticket);color:var(--ticket-ink)}
+.meme.g{background:var(--escape);color:#fff}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px 28px;margin-top:16px}
+.grid2>div{min-width:0}
+.grid2 p{font-size:.97rem;margin:0}
+ul.clean{padding-left:1.1em;margin:0 0 14px}
+ul.clean li{margin-bottom:6px;max-width:66ch}
+.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--f-mono);font-weight:700;background:var(--ticket);color:var(--ticket-ink);border-radius:4px;text-align:center;padding:4px 0}
+.steps li>div{min-width:0}
+
+.rules{background:var(--warn-soft);border-radius:10px;padding:20px 22px;margin-top:18px}
+.rules ul{margin:0}
+.help{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+.help div{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.92rem}
+.help b{font-family:var(--f-mono);font-size:1.2rem;display:block}
+
+.phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.phase{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px}
+.phase .eyebrow{display:block;margin-bottom:6px}
+.phase ul{padding-left:1.1em;margin:8px 0 0;font-size:.95rem}
+.phase li{margin-bottom:4px}
+
+.tbl-wrap{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.tbl-wrap td,.tbl-wrap th{font-size:.93rem}
+.names{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.names span{font-family:var(--f-display);font-weight:700;border:1.5px solid var(--ink);border-radius:999px;padding:4px 14px}
+footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.ticket{transition:transform .3s}.ticket:hover{transform:rotate(-1deg)}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="eyebrow">Product proposal · v0.4 · November 2026</div>
+    <h1>iAmUnemployed</h1>
+    <p class="lede">An English-language community for unemployed people, built around a leaderboard that works like a meme. We laugh at the situation, back each other up, and celebrate loudly when someone escapes.</p>
+  </div>
+  <div class="ticket" aria-label="Queue ticket, day 147">
+    <small>Your number</small>
+    <b>147</b>
+    <small>days in the queue</small>
+  </div>
+</header>
+
+<p class="pitch">The core idea: unemployment is lonely and draining. iAmUnemployed turns it into something you share. You count your days like a number in a queue, earn ridiculous titles, and make cards for social media. When you land a job, you become an Escapee and help the people still in line.</p>
+
+<div class="callout">
+  <h3>Why English from day one</h3>
+  <p>The audience is many times larger: the US, the UK, Ireland, Canada, Australia, and everyone in Europe who job-hunts in English. The meme also already exists. TikTok has thousands of "Day X of being unemployed" videos. The app gives that trend a home, a counter and a community.</p>
+  <p>Greek and other languages arrive in phase 3. That is why the code keeps every piece of text in translation files from the start.</p>
+</div>
+
+<section>
+  <div class="eyebrow">The heart of the app</div>
+  <h2>The leaderboard as a meme</h2>
+  <p>The leaderboard is a running joke. It works like a "days without an accident" sign or a gaming rank: the more days you rack up, the more over-the-top your title gets. The real glory sits with the Escapees, though. That is why there are three boards instead of one.</p>
+
+  <div class="board">
+    <div class="tabs" role="tablist" aria-label="Leaderboards">
+      <button role="tab" id="t-legends" aria-selected="true" data-tab="legends">Legends of the Queue</button>
+      <button role="tab" id="t-escaped" aria-selected="false" data-tab="escaped">The Escapees</button>
+      <button role="tab" id="t-effort" aria-selected="false" data-tab="effort">Grind of the Week</button>
+    </div>
+    <div class="board-body" id="board-body"></div>
+    <p class="board-note" id="board-note"></p>
+  </div>
+
+  <h3 style="margin-top:28px">Titles (ranks)</h3>
+  <p>Your title changes automatically as the days go by. Titles are self-deprecating and never insulting:</p>
+  <div class="tiers">
+    <div class="tier"><span class="d">0–30 days</span><b>On Vacation (Allegedly)</b></div>
+    <div class="tier"><span class="d">31–90</span><b>LinkedIn Ambassador</b></div>
+    <div class="tier"><span class="d">91–180</span><b>PhD in Iced Coffee</b></div>
+    <div class="tier"><span class="d">181–365</span><b>Couch Sage</b></div>
+    <div class="tier"><span class="d">366+</span><b>Living Legend</b></div>
+    <div class="tier esc"><span class="d">got hired</span><b>Escapee</b></div>
+  </div>
+
+  <h3 style="margin-top:28px">Badges for the small tragedies</h3>
+  <ul class="clean">
+    <li><b>Ghost Whisperer:</b> ghosted by 10 companies.</li>
+    <li><b>Final Boss Survivor:</b> made it through five interview rounds for a single job.</li>
+    <li><b>Unicorn Spotter:</b> posted an "entry level, 8+ years experience" job ad.</li>
+    <li><b>Speedrun Rejection:</b> rejected within 3 minutes of applying.</li>
+    <li><b>Paid in Exposure:</b> offered an unpaid "opportunity".</li>
+  </ul>
+</section>
+
+<section>
+  <div class="eyebrow">How it goes viral</div>
+  <h2>Shareable cards</h2>
+  <p>Every moment becomes a square card, ready for TikTok, Instagram, X or LinkedIn. The day count always appears in the queue-display typeface, so the cards are recognizable at a glance, the way Wordle results are.</p>
+  <div class="memes">
+    <div class="meme">
+      <span class="top">iAmUnemployed · DAY 147</span>
+      <span class="big">The ATS rejected me before a human could. Honestly, respect the efficiency.</span>
+      <span class="foot"><span>PhD in Iced Coffee</span><span>#iAmUnemployed</span></span>
+    </div>
+    <div class="meme y">
+      <span class="top">UNICORN OF THE WEEK</span>
+      <span class="big">"Entry level. 5+ years experience. Must speak 4 languages. Salary: competitive."</span>
+      <span class="foot"><span>412 votes</span><span>#unicornjobs</span></span>
+    </div>
+    <div class="meme g">
+      <span class="top">iWasUnemployed · 214 DAYS</span>
+      <span class="big">I'm out. Thank you, queue. Now I'm coming back for the rest of you.</span>
+      <span class="foot"><span>Escapee #1,284</span><span>#iescaped</span></span>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:28px">
+    <div><h3>Rejection Bingo</h3><p>A monthly bingo card: "we'll keep your CV on file", "overqualified", "we're looking for someone with passion". Complete a line and share your card.</p></div>
+    <div><h3>Unicorn of the Week</h3><p>Members post absurd job ads and vote. The winner becomes the meme of the week. Company names are blurred automatically.</p></div>
+    <div><h3>Unemployment Wrapped</h3><p>Like Spotify Wrapped: "83 applications, 6 interviews, ~140 iced coffees". It comes out when you escape or at the end of the year.</p></div>
+    <div><h3>Creator templates</h3><p>Ready-made templates for the existing "Day X of being unemployed" trend. The hashtag and the counter advertise the app for free.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">The reward</div>
+  <h2>I Escaped: the moment you land a job</h2>
+  <p>Tap <b>I escaped!</b> and a small ceremony begins. The counter stops, the queue display turns green and the community hears the news.</p>
+  <ol class="steps">
+    <li><div><b>Confetti and an escape card.</b> Your profile flips from iAmUnemployed to iWasUnemployed. The card shows your total days, your escape number ("Escapee #1,284") and your Wrapped, ready to share.</div></li>
+    <li><div><b>The Wall of Escapees.</b> A permanent place in the Hall of Fame. Other members leave congratulations, like signing a birthday card.</div></li>
+    <li><div><b>A gift from a sponsor.</b> For example, a discount on clothes for your first day, your first week of coffee, or a course subscription. This comes in phase 2.</div></li>
+    <li><div><b>New role: Mentor.</b> You stay in the community with the Escapee badge. You answer questions, review CVs and run mock interviews.</div></li>
+    <li><div><b>Referrals.</b> Flag "my company is hiring" and recommend members. Every hire through one of your referrals earns you the rare Liberator badge.</div></li>
+  </ol>
+  <p style="margin-top:16px">If the job doesn't work out, tap "I'm back" with zero shame. The counter starts over, the Escapee title stays forever, and you earn The Sequel badge.</p>
+</section>
+
+<section>
+  <div class="eyebrow">The community</div>
+  <h2>The feed: thoughts and experiences</h2>
+  <div class="grid2">
+    <div><h3>Categories</h3><p>Mental Health · Interviews · CVs & Résumés · Rejections · Benefits & Paperwork · Career Change · Wins · Memes.</p></div>
+    <div><h3>Anonymous posts</h3><p>Everyone posts under a nickname, and a "fully anonymous" option covers the heaviest topics.</p></div>
+    <div><h3>Accountability buddy</h3><p>Get paired with someone in your field and time zone. A weekly check-in: what I did, what I'll do next.</p></div>
+    <div><h3>City and industry groups</h3><p>London, Dublin, New York, Toronto, plus groups by industry (tech, design, hospitality). The same system covers Athens later on.</p></div>
+    <div><h3>Daily check-in</h3><p>One mood emoji and one move for the day (an application, a course, a coffee chat, a workout). This is what feeds Grind of the Week.</p></div>
+    <div><h3>Resources by country</h3><p>Benefits and free training differ from country to country. Members set their country and see what applies to them. The community helps keep the lists current.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Boundaries</div>
+  <h2>Rules of the humor</h2>
+  <p>The meme is the growth engine and also the biggest risk. Without rules, the app could turn toxic or hurt someone who is already struggling.</p>
+  <div class="rules">
+    <ul class="clean">
+      <li><b>Laugh at the situation, never at people.</b> Jokes aimed at specific members get removed.</li>
+      <li><b>The leaderboard is opt-in.</b> Counters are private by default. You join the public board only if you choose to, and always under a nickname.</li>
+      <li><b>No company or personal names</b> in job-ad memes. Names are blurred automatically and posts are reviewed before they go live. Defamation law varies by country and is especially strict in the UK.</li>
+      <li><b>A "Not in the mood for jokes today" button.</b> It hides memes and leaderboards and shows only supportive content.</li>
+      <li><b>Crisis detection.</b> If a post signals despair, the helpline for the member's country appears quietly and a moderator is alerted.</li>
+      <li><b>Human moderation across time zones.</b> Volunteer Escapees at first, then paid moderators.</li>
+    </ul>
+    <p style="margin-top:14px;margin-bottom:0">Helplines are shown based on the member's country. For example:</p>
+    <div class="help">
+      <div><b>988</b>Suicide & Crisis Lifeline (US)</div>
+      <div><b>116 123</b>Samaritans (UK & Ireland)</div>
+      <div><b>1018</b>Klimaka (Greece)</div>
+      <div><b>findahelpline.com</b>Directory for every other country</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">User journey</div>
+  <h2>From day one to the escape</h2>
+  <ol class="steps">
+    <li><div><b>Sign-up in 30 seconds.</b> Nickname, industry, country and city, and "since when". You instantly get your queue ticket with your day count and your first title.</div></li>
+    <li><div><b>First card.</b> The app suggests "Share your Day 1". This is the first viral moment.</div></li>
+    <li><div><b>Daily routine.</b> A check-in, a look at the feed, and one move to keep the streak alive.</div></li>
+    <li><div><b>Weekly rhythm.</b> Monday: a fresh Grind of the Week and a check-in with your buddy. Friday: the Unicorn of the Week vote.</div></li>
+    <li><div><b>The escape</b>, the ceremony and the switch to mentor. The loop closes and feeds the next people in line.</div></li>
+  </ol>
+</section>
+
+<section>
+  <div class="eyebrow">Technical</div>
+  <h2>How it's built</h2>
+  <div class="grid2">
+    <div><h3>Platform</h3><p>Start with a web app (PWA) that opens on a phone with no install. Cards are shared with a link. Build a native app (React Native / Expo) only once demand is proven.</p></div>
+    <div><h3>Backend</h3><p>Supabase or Firebase for accounts, the database, the real-time feed and image storage. Low cost at the start.</p></div>
+    <div><h3>Languages (i18n)</h3><p>Every piece of text lives in translation files (for example next-intl or i18next) from day one. Launch is English only, so the Greek version becomes a translation job instead of a rewrite.</p></div>
+    <div><h3>Meme cards</h3><p>Generated on the server as images (for example with Satori / OG images). Each card has its own link with a clean preview on social media.</p></div>
+    <div><h3>Escape verification</h3><p>Runs on trust, since no money is involved. Once sponsor gifts arrive, ask for a simple confirmation, such as an email from a company domain.</p></div>
+    <div><h3>Time zones</h3><p>Grind of the Week resets on Monday in each member's local time, so nobody loses a streak because of the clock.</p></div>
+  </div>
+
+  <h3 style="margin-top:28px">Core data</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Entity</th><th>What it stores</th></tr></thead>
+      <tbody>
+        <tr><td><b>User</b></td><td>nickname, industry, country, time zone, language, start date, public or private counter, role (member / Escapee / moderator)</td></tr>
+        <tr><td><b>Queue period</b></td><td>start, end, outcome. One user can have several (The Sequel)</td></tr>
+        <tr><td><b>Check-in</b></td><td>day, mood, type of move. Streaks and the effort board are built from these</td></tr>
+        <tr><td><b>Post / comment</b></td><td>category, text, anonymous or not, moderation status</td></tr>
+        <tr><td><b>Badge</b></td><td>how it's earned, date earned</td></tr>
+        <tr><td><b>Meme card</b></td><td>template, text, image, share count</td></tr>
+        <tr><td><b>Referral</b></td><td>Escapee, company, role, candidates, outcome</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Sustainability</div>
+  <h2>Who pays</h2>
+  <p>Unemployed members never pay. Revenue comes from the people who benefit from the community:</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>What they get</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td><b>Gift sponsors</b></td><td>Their brand appears at the escape, the most positive moment in the app</td><td>Phase 2</td></tr>
+        <tr><td><b>Training providers</b></td><td>Online courses and bootcamps at a member discount (affiliate)</td><td>Phase 2</td></tr>
+        <tr><td><b>Employers</b></td><td>Access to members marked "open to work", plus "unemployed-friendly" placement for job ads</td><td>Phase 3</td></tr>
+        <tr><td><b>Public agencies, NGOs, grants</b></td><td>A social policy tool and anonymous aggregate statistics (EU, UK, foundations)</td><td>Phase 2–3</td></tr>
+        <tr><td><b>Merch</b></td><td>"Living Legend" and "Escapee #…" T-shirts. Doubles as advertising</td><td>Any time</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Plan</div>
+  <h2>Rollout phases</h2>
+  <div class="phases">
+    <div class="phase"><span class="eyebrow">Phase 1 · MVP · ~6–8 weeks</span><h3>Does the meme work?</h3>
+      <ul><li>English only, ready for i18n</li><li>Sign-up and day ticket</li><li>Titles and 3 leaderboards</li><li>Shareable cards</li><li>Feed with categories</li><li>The escape and the Wall</li><li>Rules and helplines by country</li></ul></div>
+    <div class="phase"><span class="eyebrow">Phase 2 · after ~1,000 members</span><h3>A community that sticks</h3>
+      <ul><li>Buddies and city groups</li><li>Badges and Rejection Bingo</li><li>Unicorn of the Week</li><li>Wrapped</li><li>First gift sponsors</li></ul></div>
+    <div class="phase"><span class="eyebrow">Phase 3 · scale</span><h3>More languages, more jobs</h3>
+      <ul><li>Greek, Spanish, German</li><li>Mentors and referrals</li><li>Employers on the platform</li><li>Native app</li></ul></div>
+  </div>
+  <p style="margin-top:18px"><b>First test, before writing any code:</b> post 10 meme cards on TikTok and Instagram under the "Day X of being unemployed" trend and the #iAmUnemployed hashtag, linking to a landing page that says "Get your queue number". If a few hundred people sign up within two weeks, the idea has momentum.</p>
+</section>
+
+<section>
+  <div class="eyebrow">Risks</div>
+  <h2>What could go wrong</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>The humor hurts someone in crisis</td><td>Opt-in leaderboard, "no jokes today" button, crisis detection, moderators</td></tr>
+        <tr><td>Memes defame companies</td><td>Name blurring, review before posting, terms of use</td></tr>
+        <tr><td>Moderating across many time zones</td><td>Volunteer Escapees in different countries, automatic filters overnight</td></tr>
+        <tr><td>Humor doesn't translate across cultures</td><td>Local titles and memes for each language instead of word-for-word translation</td></tr>
+        <tr><td>The community empties out as people get hired</td><td>Escapees stay on as mentors, motivated by badges and referrals</td></tr>
+        <tr><td>Personal data</td><td>GDPR (EU/UK) and US state laws such as the CCPA: nicknames, minimal data, one-click account deletion</td></tr>
+        <tr><td>The viral spike fades fast</td><td>Weekly rituals (Monday leaderboard, Friday unicorn) and new templates every month</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Identity</div>
+  <h2>The name: iAmUnemployed</h2>
+  <p>The name says exactly what the app is and works as a hashtag, so every shared card carries it. It also flips when someone lands a job: their profile changes from iAmUnemployed to <b>iWasUnemployed</b>.</p>
+  <p>Before launch, check that the domain, the social media handles and the trademark are available. Backup names in case they are taken:</p>
+  <div class="names"><span>The Queue</span><span>Waitlisted</span><span>Day X</span><span>Between Jobs Club</span></div>
+</section>
+
+<section>
+  <div class="eyebrow">Next steps</div>
+  <h2>Open decisions</h2>
+  <ul class="clean">
+    <li>Which market comes first: the US, the UK, or the whole English-speaking world? The answer shapes the helplines, the resources and the moderation hours.</li>
+    <li>How edgy should the humor be, and where is the line?</li>
+    <li>Who moderates during the first months?</li>
+    <li>Build the landing page for the test first, or go straight to the MVP?</li>
+  </ul>
+</section>
+
+<footer>iAmUnemployed · product proposal, v0.4. The names, numbers and posts on the leaderboard and cards are examples.</footer>
+</div>
+
+<script>
+const data={
+  legends:{cols:["#","Nickname","Title","Days"],note:"Opt-in only: members appear here if they choose to, always under a nickname. Example data.",rows:[
+    ["1","CoffeeShopCEO","Living Legend","0412"],
+    ["2","Resume_v47_FINAL","Living Legend","0389"],
+    ["3","Mr.Overqualified","Couch Sage","0291"],
+    ["4","IcedLatteThinker","Couch Sage","0203"],
+    ["5","SendsCVsAt3am","PhD in Iced Coffee","0147"],
+    ["6","Ghosted_Again","LinkedIn Ambassador","0062"]]},
+  escaped:{cols:["#","Nickname","Escaped after","When"],note:"This is where the real glory is. Every escape is a party for the whole queue. Example data.",rows:[
+    ["1,284","NickTheDev","0214","today"],
+    ["1,283","Maria_from_Dublin","0095","yesterday"],
+    ["1,282","Kostas.exe","0388","2 days ago"],
+    ["1,281","Anonymous_Chef","0031","3 days ago"],
+    ["1,280","LinkedIn_Survivor","0167","4 days ago"]]},
+  effort:{cols:["#","Nickname","Moves this week","Streak"],note:"Resets every Monday, local time. Counts applications, courses, coffee chats and helping others. Example data.",rows:[
+    ["1","SendsCVsAt3am","34","021"],
+    ["2","Ghosted_Again","29","012"],
+    ["3","IcedLatteThinker","26","045"],
+    ["4","NewHere_Day3","19","003"],
+    ["5","Mr.Overqualified","17","009"]]}
+};
+function render(tab){
+  const d=data[tab];
+  const head="<tr>"+d.cols.map(c=>`<th>${c}</th>`).join("")+"</tr>";
+  const body=d.rows.map(r=>{
+    let t2;
+    if(tab==="escaped") t2=`<td><span class="pill esc">Escapee</span> <span class="led ok">${r[2]}</span></td><td>${r[3]}</td>`;
+    else if(tab==="effort") t2=`<td><span class="led">${r[2]}</span></td><td>${r[3]} days</td>`;
+    else t2=`<td><span class="pill">${r[2]}</span></td><td><span class="led">${r[3]}</span></td>`;
+    return `<tr><td class="rank">${r[0]}</td><td class="nick">${r[1]}</td>${t2}</tr>`;
+  }).join("");
+  document.getElementById("board-body").innerHTML=`<table><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  document.getElementById("board-note").textContent=d.note;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab?"true":"false"));
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>render(b.dataset.tab)));
+render("legends");
+</script>

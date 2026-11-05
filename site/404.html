@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrong queue · iAmUnemployed</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@600;800;900&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* Layout: one centred ticket and a way back home */
+:root{
+  --bg:#EEF1F4; --ink:#18212C; --muted:#5A6676;
+  --ticket:#F2C230; --ticket-ink:#2A2100; --led:#C8361B; --led-bg:#1A1412;
+  --f-display:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161C; --ink:#E5EAF0; --muted:#9AA6B5; --ticket:#E9B92B; --ticket-ink:#2A2100; --led:#FF6A45; --led-bg:#0B0908; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161C; --ink:#E5EAF0; --muted:#9AA6B5; --ticket:#E9B92B; --ticket-ink:#2A2100; --led:#FF6A45; --led-bg:#0B0908; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--f-display);display:grid;place-items:center}
+main{width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding-block:40px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.tk{position:relative;width:100%;background:var(--ticket);color:var(--ticket-ink);border-radius:22px;padding:26px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.tk::before,.tk::after{content:"";position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.tk::before{left:-11px}.tk::after{right:-11px}
+.label{font:700 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase}
+.led{font:700 72px/1.05 var(--f-mono);background:var(--led-bg);color:var(--led);padding:8px 18px;border-radius:12px;letter-spacing:.06em}
+h1{font-weight:900;font-size:clamp(2.2rem,8vw,3rem);line-height:1.05;letter-spacing:-.03em;margin:8px 0 0}
+p{margin:0;color:var(--muted)}
+a{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:14px 22px;border-radius:14px;background:var(--ticket);color:var(--ticket-ink);font:800 17px var(--f-display);text-decoration:none}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+  <div class="tk"><div class="label">Your number</div><span class="led">0404</span><div class="label">page not found</div></div>
+  <h1>Wrong queue.</h1>
+  <p>This page doesn’t exist. Your place in line is waiting on the homepage.</p>
+  <a href="/">Back to the queue</a>
+</main>
+</body>
+</html>

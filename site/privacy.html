@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · iAmUnemployed</title>
+<meta name="description" content="How iAmUnemployed handles your data: what we collect for the waitlist, why, and how to have it deleted.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap">
+<style>
+/* Layout: one narrow reading column, same tokens as the homepage */
+:root{
+  --bg:#EEF1F4; --paper:#FFFFFF; --ink:#18212C; --muted:#5A6676; --line:#D5DCE4;
+  --ticket:#F2C230; --ticket-ink:#2A2100;
+  --f-display:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-body:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--f-body);-webkit-font-smoothing:antialiased}
+a{color:var(--ink)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.wrap{max-width:760px;margin-inline:auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.top{padding-block:20px}
+.logo{display:inline-flex;align-items:center;font:900 22px/1 var(--f-display);letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.mark{display:inline-grid;place-items:center;width:24px;height:27px;margin-right:3px;border-radius:6px;background:var(--ticket);color:var(--ticket-ink);font:800 16px var(--f-mono)}
+main{padding-block:24px 56px}
+.updated{font:700 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+h1{font:900 clamp(2.4rem,7vw,3.6rem)/1.02 var(--f-display);letter-spacing:-.03em;margin:0 0 18px}
+h2{font:800 22px/1.25 var(--f-display);margin:40px 0 8px;text-wrap:balance}
+p,li{max-width:65ch}
+p{margin:0 0 12px}
+ul{margin:0 0 12px;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.lede{font-size:clamp(1.1rem,2.6vw,1.3rem);color:var(--muted)}
+.todo{background:var(--ticket);color:var(--ticket-ink);border-radius:4px;padding:0 5px;font-weight:700;white-space:nowrap}
+.foot{padding-block:24px 44px;border-top:1px solid var(--line);font-size:15px}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <a class="logo" href="./"><span class="mark" aria-hidden="true">i</span>AmUnemployed</a>
+</header>
+
+<main class="wrap">
+  <p class="updated">Last updated 4 November 2026</p>
+  <h1>Privacy</h1>
+  <p class="lede">The short version: we collect as little as possible, we only use your email to tell you when iAmUnemployed launches, and you can ask us to delete it at any time.</p>
+
+  <h2>Who we are</h2>
+  <p>iAmUnemployed is run by <span class="todo">[YOUR NAME]</span>, <span class="todo">[CITY]</span>, Greece. You can reach us at <span class="todo">[CONTACT EMAIL]</span>.</p>
+
+  <h2>What we collect</h2>
+  <p>If you join the waitlist, we collect:</p>
+  <ul>
+    <li>your email address</li>
+    <li>if you choose to tell us: when your job search started, where you heard about us, and your country</li>
+  </ul>
+  <p>The date you pick for the ticket on our homepage stays in your browser and is not sent to us. If you then open the waitlist form, we may fill that date in for you. It only reaches us if you submit the form.</p>
+
+  <h2>Why we use it</h2>
+  <p>To send you one email when iAmUnemployed launches, and to understand how many people are interested and where they found us. We use your data because you agreed to it when you signed up (consent, article 6(1)(a) of the GDPR). We never sell it and never use it for advertising.</p>
+
+  <h2>Where it is kept</h2>
+  <p>The waitlist form runs on Google Forms and the answers are stored in Google Sheets, so Google processes them on our behalf. To send the launch email we may use an email service such as Brevo or Mailchimp.</p>
+
+  <h2>How long we keep it</h2>
+  <p>Until we have sent the launch email. If iAmUnemployed has not launched within 12 months, we delete the waitlist. You can ask us to delete your details sooner, at any time.</p>
+
+  <h2>Other services this site uses</h2>
+  <ul>
+    <li><b>Google Fonts</b> provides the typefaces. Your browser fetches them from Google, which sees your IP address.</li>
+    <li><b>Our host</b>, <span class="todo">[Cloudflare or Netlify]</span>, keeps standard server logs, such as IP addresses, for security.</li>
+    <li><b>Cloudflare Web Analytics</b> counts visits without cookies and without identifying you. <span class="todo">[delete this line if you don’t turn analytics on]</span></li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>We don’t use cookies or advertising trackers. Your browser remembers the start date you picked so your ticket looks the same next time. Clearing this site’s data in your browser removes it.</p>
+
+  <h2>Your rights</h2>
+  <p>You can ask to see, correct or delete your data, or withdraw your consent, at any time. Email <span class="todo">[CONTACT EMAIL]</span> and we’ll handle it within 30 days. If you think we have handled your data wrongly, you can complain to the Hellenic Data Protection Authority at <a href="https://www.dpa.gr" target="_blank" rel="noopener noreferrer">dpa.gr</a>, or to the data protection authority where you live.</p>
+</main>
+
+<footer class="foot wrap">
+  <a href="./">Back to the queue</a>
+</footer>
+
+</body>
+</html>

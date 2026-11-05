@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iAmUnemployed · Unemployed? Take a number.</title>
+<meta name="description" content="A community for people between jobs. Count your days, collect ridiculous titles, swap stories with people who get it, and celebrate when someone escapes. Join the waitlist.">
+<meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11161C" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Link previews (WhatsApp, Messenger, X, LinkedIn). Replace YOUR-DOMAIN with your real domain, for example iamunemployed.co -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="iAmUnemployed">
+<meta property="og:title" content="Unemployed? Take a number.">
+<meta property="og:description" content="A community for people between jobs. Count your days, collect ridiculous titles, and celebrate when someone escapes.">
+<meta property="og:image" content="https://YOUR-DOMAIN/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A yellow queue ticket: your number 0147, days in the queue, PhD in Iced Coffee.">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+
+<!-- Visit counts without cookies. On Netlify (or any host other than Cloudflare Pages), remove the comment marks around
+     the next line and paste your token from Cloudflare Web Analytics. On Cloudflare Pages you only turn it on in the dashboard.
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR-TOKEN"}'></script>
+-->
+
+<style>
+/* Layout: mobile-first single column; on wide screens the hero splits into the pitch (left) and the live queue ticket (right), then features, the rank ladder, example cards and house rules stack below, ending in a dark sign-up band */
+:root{
+  --bg:#EEF1F4; --paper:#FFFFFF; --ink:#18212C; --muted:#5A6676; --line:#D5DCE4;
+  --ticket:#F2C230; --ticket-ink:#2A2100; --ticket-soft:#FBF0C9;
+  --escape:#1B7F67; --on-escape:#FFFFFF; --escape-soft:#DCF1EA;
+  --led:#C8361B; --led-bg:#1A1412;
+  --band:#18212C; --on-band:#EEF1F4; --on-band-muted:#AEB8C5;
+  --shadow:rgba(24,33,44,.28);
+  --f-display:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-body:"Commissioner","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --ticket-soft:#3A3112;
+  --escape:#4CC3A2; --on-escape:#06231B; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908;
+  --band:#0A0E13; --on-band:#E5EAF0; --on-band-muted:#9AA6B5;
+  --shadow:rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161C; --paper:#19202A; --ink:#E5EAF0; --muted:#9AA6B5; --line:#2B3542;
+  --ticket:#E9B92B; --ticket-ink:#2A2100; --ticket-soft:#3A3112;
+  --escape:#4CC3A2; --on-escape:#06231B; --escape-soft:#163A31;
+  --led:#FF6A45; --led-bg:#0B0908;
+  --band:#0A0E13; --on-band:#E5EAF0; --on-band-muted:#9AA6B5;
+  --shadow:rgba(0,0,0,.6);
+  color-scheme:dark}
+
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+a{color:inherit}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.eyebrow{font:700 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:20px}
+.logo{display:flex;align-items:center;font:900 22px/1 var(--f-display);letter-spacing:-.02em;white-space:nowrap}
+.mark{display:inline-grid;place-items:center;width:24px;height:27px;margin-right:3px;border-radius:6px;background:var(--ticket);color:var(--ticket-ink);font:800 16px var(--f-mono);letter-spacing:0}
+.mark.esc{background:var(--escape);color:var(--on-escape)}
+.soon{font:700 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted);white-space:nowrap}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:36px;align-items:center;padding-block:20px 64px}
+@media (min-width:900px){.hero{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:56px;padding-block:40px 96px}}
+.pitch{display:flex;flex-direction:column;align-items:flex-start;gap:20px;min-width:0}
+h1{font-weight:900;font-size:clamp(2.7rem,8.6vw,5.3rem);line-height:1.0;letter-spacing:-.035em}
+.hl{background:var(--ticket);color:var(--ticket-ink);padding:0 .14em;border-radius:.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.lede{font-size:clamp(1.06rem,2.3vw,1.25rem);color:var(--muted);max-width:34em;margin:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:800 17px/1.2 var(--f-body);border:0;border-radius:14px;padding:15px 22px;min-height:54px;text-decoration:none;text-align:center;cursor:pointer;background:var(--ink);color:var(--bg)}
+.btn.ticket{background:var(--ticket);color:var(--ticket-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{min-height:46px;padding:10px 16px;font-size:15px;font-weight:700}
+.btn[aria-disabled="true"]{opacity:.65;cursor:default}
+.btn:disabled{opacity:.6;cursor:wait}
+.note{font-size:14px;color:var(--muted);margin:0}
+
+/* the ticket machine */
+.machine{display:flex;flex-direction:column;gap:18px;width:100%;max-width:460px;justify-self:center;min-width:0}
+.tk{position:relative;background:var(--ticket);color:var(--ticket-ink);border-radius:22px;padding:28px 24px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 30px 60px -32px var(--shadow)}
+.tk::before,.tk::after{content:"";position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.tk::before{left:-11px}.tk::after{right:-11px}
+.tk-label,.tk-sub{font:700 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase}
+.led{font:700 14px var(--f-mono);background:var(--led-bg);color:var(--led);padding:3px 8px;border-radius:6px;letter-spacing:.06em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.led.big{font-size:clamp(58px,17vw,86px);line-height:1.05;padding:8px 18px;border-radius:12px;margin:6px 0 2px}
+.pill{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 14px/1.4 var(--f-body);padding:4px 12px;border-radius:999px;background:var(--paper);border:1px solid var(--line)}
+.pill.on-tk{background:rgba(255,255,255,.55);border-color:transparent;color:var(--ticket-ink);margin-top:8px;font-size:15px}
+.tk-line{margin:4px 0 0;font-weight:600;font-size:15px;line-height:1.45;max-width:24em}
+.stamp{position:absolute;top:14px;right:16px;font:700 10.5px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;border:1.5px solid currentColor;border-radius:6px;padding:2px 6px;transform:rotate(5deg);opacity:.75}
+.picker{display:flex;flex-direction:column;gap:10px}
+.picker label{font-weight:800;font-size:16px}
+input[type="date"]{width:100%;min-height:52px;font:600 17px var(--f-body);background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+.quick{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 14px var(--f-body);border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;min-height:42px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.share{display:flex;flex-wrap:wrap;gap:10px}
+.share .btn{flex:1 1 150px}
+#cap-fallback{width:100%;min-height:100px;font:500 15px/1.45 var(--f-body);background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+
+/* sections */
+.sec{padding-block:56px;display:flex;flex-direction:column;gap:14px}
+@media (min-width:900px){.sec{padding-block:80px}}
+h2{font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;letter-spacing:-.03em}
+.sec-lede{color:var(--muted);max-width:40em;margin:0}
+.sec-body{margin-top:18px}
+
+.features{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:720px){.features{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.feat{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.feat h3{font-weight:800;font-size:21px;line-height:1.2}
+.feat p{margin:0;color:var(--muted);font-size:16px}
+.art{background:var(--bg);border-radius:14px;padding:16px;min-height:112px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}
+.mini-board{list-style:none;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:6px}
+.mini-board li{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.mini-board li span:first-child{font:700 12px var(--f-mono);color:var(--muted)}
+.mini-board b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini-board li.me b{color:var(--muted)}
+.mini-post{width:100%;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;line-height:1.45}
+.mini-post p{margin:0 0 8px}
+.mini-reacts{display:flex;flex-wrap:wrap;gap:6px}
+.mini-reacts span{font:600 12px var(--f-body);border:1px solid var(--line);border-radius:999px;padding:2px 8px;background:var(--bg)}
+.flip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;font:900 18px/1 var(--f-display);letter-spacing:-.02em}
+.flip .arrow{font:700 16px var(--f-mono);color:var(--muted)}
+.flip span.word{display:flex;align-items:center}
+
+.ladder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ladder li{display:grid;grid-template-columns:118px minmax(0,1fr) auto;align-items:center;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.ladder .range{font:700 13px var(--f-mono);letter-spacing:.04em;color:var(--muted)}
+.ladder .rank{min-width:0}
+.ladder .rank b{display:block;font:800 18px/1.25 var(--f-display)}
+.ladder .rank small{display:block;font-size:14px;color:var(--muted)}
+.ladder .tag{font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:3px 7px;background:var(--ticket-ink);color:var(--ticket);visibility:hidden}
+.ladder li.current{background:var(--ticket);border-color:transparent;color:var(--ticket-ink)}
+.ladder li.current .range,.ladder li.current .rank small{color:var(--ticket-ink)}
+.ladder li.current .tag{visibility:visible}
+.ladder li.esc{background:var(--escape-soft);border-color:transparent}
+.ladder li.esc .rank b{color:var(--escape)}
+@media (max-width:540px){.ladder li{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}.ladder .range{grid-column:1 / -1}}
+
+.memes{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,82%);gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;scrollbar-width:thin}
+.memes>*{scroll-snap-align:start}
+@media (min-width:820px){.memes{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;padding-bottom:0}}
+.meme{aspect-ratio:1/1;max-width:100%;border-radius:18px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;background:var(--ink);color:var(--bg)}
+.meme .top{font:700 12px var(--f-mono);letter-spacing:.1em;opacity:.8}
+.meme .big{font:900 clamp(20px,2.3vw,25px)/1.16 var(--f-display)}
+.meme .foot{display:flex;justify-content:space-between;gap:8px;font:600 12px var(--f-mono)}
+.meme.y{background:var(--ticket);color:var(--ticket-ink)}
+.meme.g{background:var(--escape);color:var(--on-escape)}
+
+.rules{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+@media (min-width:820px){.rules{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}}
+.rules li{border-top:3px solid var(--ink);padding-top:14px;color:var(--muted);font-size:16px}
+.rules b{display:block;color:var(--ink);font:800 19px/1.25 var(--f-display);margin-bottom:6px}
+
+.band{background:var(--band);color:var(--on-band)}
+.band-inner{padding-block:72px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.band h2{color:var(--on-band)}
+.band p{margin:0;color:var(--on-band-muted);max-width:36em}
+.band .note{color:var(--on-band-muted)}
+
+.foot{padding-block:28px 44px;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--muted)}
+.foot p{margin:0;max-width:60em}
+
+.toast{position:fixed;z-index:20;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;font:600 15px/1.4 var(--f-body);text-align:center;box-shadow:0 12px 30px -10px var(--shadow)}
+@media (prefers-reduced-motion:no-preference){
+  .toast:not([hidden]){animation:pop .2s ease-out}
+  .chip:active,.btn:active{transform:scale(.98)}
+}
+@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+</style>
+</head>
+<body>
+
+<header class="top wrap">
+  <div class="logo"><span class="mark" aria-hidden="true">i</span><span aria-hidden="true">AmUnemployed</span><span class="sr">iAmUnemployed</span></div>
+  <span class="soon">Coming soon</span>
+</header>
+
+<main>
+  <section class="hero wrap" aria-labelledby="hero-h">
+    <div class="pitch">
+      <p class="eyebrow">For people between jobs</p>
+      <h1 id="hero-h">Unemployed? <span class="hl">Take a number.</span></h1>
+      <p class="lede">iAmUnemployed is a community for the job hunt. Count your days, collect ridiculous titles, swap stories with people who get it, and celebrate loudly when someone escapes.</p>
+      <a class="btn ticket" data-cta data-label="Save my spot in the queue" href="#" target="_blank" rel="noopener">Save my spot in the queue</a>
+      <p class="note" data-cta-note data-live="Free. Launching in English first. One email when it’s ready.">Free. Launching in English first. One email when it’s ready.</p>
+    </div>
+
+    <div class="machine">
+      <div class="tk" id="tk">
+        <span class="stamp" id="stamp">Example</span>
+        <div class="tk-label">Your number</div>
+        <span class="led big" id="tk-num" aria-hidden="true">0147</span>
+        <div class="tk-sub">days in the queue</div>
+        <span class="pill on-tk" id="tk-title">PhD in Iced Coffee</span>
+        <p class="tk-line" id="tk-line">Thesis: the ATS never sleeps.</p>
+      </div>
+      <p class="sr" id="tk-live" aria-live="polite"></p>
+      <form class="picker" id="picker" novalidate>
+        <label for="start">When did your job search start?</label>
+        <input type="date" id="start">
+        <div class="quick" role="group" aria-label="Quick picks">
+          <button type="button" class="chip" data-days="7" aria-pressed="false">1 week</button>
+          <button type="button" class="chip" data-days="30" aria-pressed="false">1 month</button>
+          <button type="button" class="chip" data-days="91" aria-pressed="false">3 months</button>
+          <button type="button" class="chip" data-days="182" aria-pressed="false">6 months</button>
+          <button type="button" class="chip" data-days="366" aria-pressed="false">1 year+</button>
+        </div>
+      </form>
+      <div class="share">
+        <button type="button" class="btn ghost small" id="save-img" hidden>Save as image</button>
+        <button type="button" class="btn ghost small" id="copy-cap">Copy caption</button>
+      </div>
+      <p class="note" id="share-note">Screenshot your ticket and post it with #iAmUnemployed.</p>
+      <label class="sr" for="cap-fallback">Caption to copy</label>
+      <textarea id="cap-fallback" readonly hidden></textarea>
+    </div>
+  </section>
+
+  <section class="sec wrap" aria-labelledby="what-h">
+    <p class="eyebrow">What’s inside</p>
+    <h2 id="what-h">Built for the waiting part of the job hunt</h2>
+    <div class="features sec-body">
+      <article class="feat">
+        <div class="art" aria-hidden="true"><span class="led">0147</span><span class="pill">PhD in Iced Coffee</span></div>
+        <h3>Count your days</h3>
+        <p>A queue ticket instead of quiet shame. Log applications, interviews and even rejections. It all counts as effort.</p>
+      </article>
+      <article class="feat">
+        <div class="art" aria-hidden="true">
+          <ol class="mini-board">
+            <li><span>1</span><b>CoffeeShopCEO</b><span class="led">0412</span></li>
+            <li><span>2</span><b>Resume_v47_FINAL</b><span class="led">0389</span></li>
+            <li class="me"><span>3</span><b>You?</b><span class="led">????</span></li>
+          </ol>
+        </div>
+        <h3>Leaderboards you can laugh at</h3>
+        <p>Legends of the Queue, The Escapees and Grind of the Week. Opt-in, and always under a nickname.</p>
+      </article>
+      <article class="feat">
+        <div class="art" aria-hidden="true">
+          <div class="mini-post"><p>Applied at 2:59am. Rejected at 3:02am. Respect the efficiency, I guess.</p><div class="mini-reacts"><span>Same 214</span><span>Hug 41</span><span>Haha 532</span></div></div>
+        </div>
+        <h3>People who get it</h3>
+        <p>An anonymous feed for rejections, interviews, wins and bad days. Plus Rejection Bingo and Unicorn of the Week.</p>
+      </article>
+      <article class="feat">
+        <div class="art" aria-hidden="true">
+          <div class="flip"><span class="word"><span class="mark">i</span>AmUnemployed</span><span class="arrow">→</span><span class="word"><span class="mark esc">i</span>WasUnemployed</span></div>
+        </div>
+        <h3>A proper escape</h3>
+        <p>Land a job and the whole queue celebrates. Your profile flips to iWasUnemployed, and you can help the next person in line.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec wrap" aria-labelledby="ladder-h">
+    <p class="eyebrow">The ranks</p>
+    <h2 id="ladder-h">Which title are you?</h2>
+    <p class="sec-lede">Your title levels up the longer you wait. The joke is on the situation, never on you.</p>
+    <ol class="ladder sec-body" id="ladder">
+      <li data-tier="0"><span class="range">0–30 days</span><span class="rank"><b>On Vacation (Allegedly)</b></span><span class="tag">You</span></li>
+      <li data-tier="1"><span class="range">31–90 days</span><span class="rank"><b>LinkedIn Ambassador</b></span><span class="tag">You</span></li>
+      <li data-tier="2"><span class="range">91–180 days</span><span class="rank"><b>PhD in Iced Coffee</b></span><span class="tag">You</span></li>
+      <li data-tier="3"><span class="range">181–365 days</span><span class="rank"><b>Couch Sage</b></span><span class="tag">You</span></li>
+      <li data-tier="4"><span class="range">366+ days</span><span class="rank"><b>Living Legend</b></span><span class="tag">You</span></li>
+      <li class="esc"><span class="range">Got hired</span><span class="rank"><b>Escapee</b><small>Your profile flips to iWasUnemployed.</small></span><span class="tag">You</span></li>
+    </ol>
+  </section>
+
+  <section class="sec wrap" aria-labelledby="vibe-h">
+    <p class="eyebrow">The vibe</p>
+    <h2 id="vibe-h">Made for sharing</h2>
+    <p class="sec-lede">Every moment turns into a card for TikTok and Instagram. These are examples.</p>
+    <div class="memes sec-body">
+      <div class="meme"><span class="top">iAmUnemployed · DAY 147</span><span class="big">The ATS rejected me before a human could. Honestly, respect the efficiency.</span><span class="foot"><span>PhD in Iced Coffee</span><span>#iAmUnemployed</span></span></div>
+      <div class="meme y"><span class="top">UNICORN OF THE WEEK</span><span class="big">“Entry level. 5+ years experience. Must speak 4 languages. Salary: competitive.”</span><span class="foot"><span>412 votes</span><span>#unicornjobs</span></span></div>
+      <div class="meme g"><span class="top">iWasUnemployed · 214 DAYS</span><span class="big">I’m out. Thank you, queue. Now I’m coming back for the rest of you.</span><span class="foot"><span>Escapee #1,284</span><span>#iescaped</span></span></div>
+    </div>
+  </section>
+
+  <section class="sec wrap" aria-labelledby="rules-h">
+    <p class="eyebrow">House rules</p>
+    <h2 id="rules-h">Funny, never cruel</h2>
+    <ul class="rules sec-body">
+      <li><b>Laugh at the situation, never at people.</b>Jokes aimed at members get removed.</li>
+      <li><b>Private by default.</b>Leaderboards are opt-in, and you always appear under a nickname.</li>
+      <li><b>Calm mode for heavy days.</b>One switch hides every meme and leaderboard. Real support lines are always one tap away.</li>
+    </ul>
+  </section>
+
+  <section class="band" aria-labelledby="band-h">
+    <div class="wrap band-inner">
+      <h2 id="band-h">The queue is better together.</h2>
+      <p>Join the waitlist and be first in when iAmUnemployed opens.</p>
+      <a class="btn ticket" data-cta data-label="Save my spot in the queue" href="#" target="_blank" rel="noopener">Save my spot in the queue</a>
+      <p class="note" data-cta-note data-live="Free. Launching in English first. One email when it’s ready, nothing else.">Free. Launching in English first. One email when it’s ready, nothing else.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="foot wrap">
+  <p>Having a hard time right now? <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a> lists free, confidential support lines in your country.</p>
+  <p>iAmUnemployed · 2026 · We only use your email to tell you when we launch. <a href="privacy.html">Privacy</a></p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================================================
+   WAITLIST LINK: paste your form link between the quotes.
+   Optional tokens for pre-filled links: {source} comes from ?utm_source=... or #tiktok / #instagram,
+   {start} is the visitor's start date (YYYY-MM-DD) and {days} their day count.
+   ============================================================ */
+const WAITLIST_URL = '';
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const pad = n => String(Math.max(0, Math.min(9999, n))).padStart(4, '0');
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const todayStr = () => ymd(new Date());
+const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diffDays = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+const isYmd = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(parseYmd(s).getTime());
+const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const coarse = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+
+const TITLES = [
+  [0, 30, 'On Vacation (Allegedly)', 'It’s not a vacation if you check LinkedIn every hour.'],
+  [31, 90, 'LinkedIn Ambassador', 'Open to work. Also open to snacks.'],
+  [91, 180, 'PhD in Iced Coffee', 'Thesis: the ATS never sleeps.'],
+  [181, 365, 'Couch Sage', 'I have read every rejection template ever written.'],
+  [366, Infinity, 'Living Legend', 'They will tell stories about this queue.']
+];
+const tierOf = d => Math.max(0, TITLES.findIndex(t => d >= t[0] && d <= t[1]));
+
+const SOURCES = {tiktok: 'tiktok', instagram: 'instagram', ig: 'instagram', x: 'x', twitter: 'x', reddit: 'reddit', linkedin: 'linkedin', facebook: 'facebook', friend: 'friend', whatsapp: 'whatsapp'};
+const params = new URLSearchParams(location.search);
+const SOURCE = SOURCES[(params.get('utm_source') || params.get('src') || (location.hash || '').slice(1)).toLowerCase()] || 'direct';
+
+const KEY = 'iamunemployed-landing-start';
+let cur = {days: 147, start: '', example: true, quick: null};
+
+/* toast */
+let toastTimer = 0;
+function toast(msg) {
+  const el = $('#toast');
+  el.hidden = true; void el.offsetWidth;
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3400);
+}
+
+/* the LED number rolls to its new value */
+let shown = 147, rollId = 0;
+function rollTo(n) {
+  const el = $('#tk-num');
+  const id = ++rollId;
+  if (reduced || Math.abs(n - shown) < 2) { shown = n; el.textContent = pad(n); return; }
+  const from = shown, t0 = performance.now(), dur = 650;
+  const step = t => {
+    if (id !== rollId) return;
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = pad(Math.round(from + (n - from) * e));
+    if (k < 1) requestAnimationFrame(step); else shown = n;
+  };
+  requestAnimationFrame(step);
+}
+
+/* waitlist links */
+function waitlistUrl() {
+  if (!WAITLIST_URL) return '';
+  return WAITLIST_URL
+    .replace(/\{source\}/g, encodeURIComponent(SOURCE))
+    .replace(/\{start\}/g, cur.example ? '' : encodeURIComponent(cur.start))
+    .replace(/\{days\}/g, cur.example ? '' : String(cur.days));
+}
+function updateCtas() {
+  const url = waitlistUrl();
+  $$('[data-cta]').forEach(a => {
+    if (url) { a.href = url; a.removeAttribute('aria-disabled'); a.textContent = a.dataset.label; }
+    else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); a.textContent = 'Sign-ups open soon'; }
+  });
+  $$('[data-cta-note]').forEach(p => { p.textContent = url ? p.dataset.live : 'The waitlist opens in a few days. Follow #iAmUnemployed to hear first.'; });
+}
+
+function render(animate) {
+  const d = cur.days, t = TITLES[tierOf(d)];
+  if (animate) rollTo(d); else { shown = d; $('#tk-num').textContent = pad(d); }
+  $('#tk-title').textContent = t[2];
+  $('#tk-line').textContent = t[3];
+  $('#stamp').hidden = !cur.example;
+  $$('#ladder li[data-tier]').forEach(li => {
+    li.classList.toggle('current', Number(li.dataset.tier) === tierOf(d));
+    li.querySelector('.tag').textContent = cur.example ? 'Example' : 'You';
+  });
+  $$('.quick .chip').forEach(c => c.setAttribute('aria-pressed', String(!cur.example && Number(c.dataset.days) === cur.quick)));
+  updateCtas();
+}
+function announce() {
+  const t = TITLES[tierOf(cur.days)];
+  $('#tk-live').textContent = `Your number is ${cur.days}. Your title: ${t[2]}.`;
+}
+function remember(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* storage unavailable */ } }
+function setStart(v, quick) {
+  cur = {days: Math.max(0, diffDays(v, todayStr())), start: v, example: false, quick: quick || null};
+  remember(v); render(true); announce();
+}
+
+/* date picker and quick picks */
+const startEl = $('#start');
+startEl.max = todayStr();
+startEl.addEventListener('change', () => {
+  const v = startEl.value;
+  if (!isYmd(v)) return;
+  if (v > todayStr()) { toast('That date is in the future. Pick the day your search started.'); return; }
+  setStart(v, null);
+});
+$$('.quick .chip').forEach(c => c.addEventListener('click', () => {
+  const n = Number(c.dataset.days), v = addDays(todayStr(), -n);
+  startEl.value = v;
+  setStart(v, n);
+}));
+$('#picker').addEventListener('submit', e => e.preventDefault());
+function nudge() { toast('Pick your start date first, so the ticket shows your number.'); startEl.focus(); }
+
+/* caption */
+function caption() {
+  const t = TITLES[tierOf(cur.days)];
+  return `Day ${cur.days} of being unemployed. Current title: ${t[2]}. ${t[3]} #iAmUnemployed #dayXunemployed`;
+}
+$('#copy-cap').addEventListener('click', () => {
+  if (cur.example) { nudge(); return; }
+  const text = caption();
+  const fallback = () => { const ta = $('#cap-fallback'); ta.value = text; ta.hidden = false; ta.focus(); ta.select(); toast('Copy the caption from the box below.'); };
+  try {
+    const p = navigator.clipboard && navigator.clipboard.writeText(text);
+    if (!p) { fallback(); return; }
+    p.then(() => toast('Caption copied. Paste it with your ticket.'), fallback);
+  } catch (e) { fallback(); }
+});
+
+/* the shareable image, drawn on a canvas (1080 x 1350, portrait for TikTok and Instagram) */
+function rr(x, X, Y, W, H, R) {
+  x.beginPath();
+  if (x.roundRect) x.roundRect(X, Y, W, H, R);
+  else { x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); }
+}
+function wrapText(x, text, cx, y, maxW, lh) {
+  const words = text.split(' '), lines = [];
+  let line = '';
+  for (const w of words) { const test = line ? line + ' ' + w : w; if (x.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test; }
+  if (line) lines.push(line);
+  lines.forEach((l, i) => x.fillText(l, cx, y + i * lh));
+}
+async function drawCard(d) {
+  const t = TITLES[tierOf(d)];
+  try { await Promise.all(['900 72px Commissioner', '800 50px Commissioner', '600 40px Commissioner', '700 200px "JetBrains Mono"', '700 34px "JetBrains Mono"'].map(f => document.fonts.load(f))); } catch (e) { /* fall back to system fonts */ }
+  const W = 1080, H = 1350, c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const NIGHT = '#18212C', YEL = '#F2C230', YINK = '#2A2100', LEDBG = '#1A1412', LED = '#FF5A36', LIGHT = '#EEF1F4';
+  const ls = v => { if ('letterSpacing' in x) x.letterSpacing = v; };
+  x.fillStyle = NIGHT; x.fillRect(0, 0, W, H);
+  const tx = 80, ty = 130, tw = W - 160, th = 920;
+  rr(x, tx, ty, tw, th, 56); x.fillStyle = YEL; x.fill();
+  x.fillStyle = NIGHT;
+  x.beginPath(); x.arc(tx, ty + th / 2, 42, 0, Math.PI * 2); x.fill();
+  x.beginPath(); x.arc(tx + tw, ty + th / 2, 42, 0, Math.PI * 2); x.fill();
+  x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillStyle = YINK;
+  x.font = '700 34px "JetBrains Mono", monospace'; ls('6px'); x.fillText('YOUR NUMBER', W / 2, ty + 100); ls('0px');
+  const lw = 700, lh = 260, lx = (W - lw) / 2, ly = ty + 140;
+  rr(x, lx, ly, lw, lh, 28); x.fillStyle = LEDBG; x.fill();
+  x.fillStyle = LED; x.font = '700 200px "JetBrains Mono", monospace'; x.textBaseline = 'middle'; ls('12px');
+  x.fillText(pad(d), W / 2, ly + lh / 2 + 6); ls('0px'); x.textBaseline = 'alphabetic';
+  x.fillStyle = YINK; x.font = '700 34px "JetBrains Mono", monospace'; ls('6px'); x.fillText('DAYS IN THE QUEUE', W / 2, ly + lh + 72); ls('0px');
+  x.font = '800 50px Commissioner, sans-serif';
+  const pw = Math.min(tw - 120, x.measureText(t[2]).width + 72), py = ly + lh + 112;
+  rr(x, (W - pw) / 2, py, pw, 88, 44); x.fillStyle = 'rgba(255,255,255,0.6)'; x.fill();
+  x.fillStyle = YINK; x.fillText(t[2], W / 2, py + 61);
+  x.font = '600 40px Commissioner, sans-serif'; wrapText(x, t[3], W / 2, py + 170, tw - 200, 54);
+  x.fillStyle = LIGHT; x.font = '900 72px Commissioner, sans-serif'; x.fillText('iAmUnemployed', W / 2, H - 150);
+  x.fillStyle = YEL; x.font = '700 34px "JetBrains Mono", monospace'; x.fillText('#iAmUnemployed  #dayXunemployed', W / 2, H - 86);
+  return new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej({code: 'unavailable'})), 'image/png'));
+}
+
+/* saving: inside Claude the viewer's save prompt; on phones the share sheet; elsewhere a normal download */
+const saveBtn = $('#save-img');
+const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+const shareFiles = !inClaude && coarse && typeof navigator.canShare === 'function';
+let downloads = null;
+function showSave() {
+  saveBtn.hidden = false;
+  if (shareFiles) saveBtn.textContent = 'Share image';
+  $('#share-note').textContent = 'Save your ticket as an image, or screenshot it, and post it with #iAmUnemployed.';
+}
+if (inClaude) {
+  window.claude.use('downloads').then(ns => { downloads = ns; if (ns) showSave(); }, () => {});
+} else {
+  showSave();
+}
+function plainDownload(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+saveBtn.addEventListener('click', async () => {
+  if (cur.example) { nudge(); return; }
+  saveBtn.disabled = true;
+  const name = `iamunemployed-day-${cur.days}.png`;
+  try {
+    const blob = await drawCard(cur.days);
+    if (downloads) {
+      await downloads.save({filename: name, data: blob});
+      toast('Saved. Post it with #iAmUnemployed.');
+    } else if (!inClaude) {
+      const file = typeof File === 'function' ? new File([blob], name, {type: 'image/png'}) : null;
+      if (shareFiles && file && navigator.canShare({files: [file]})) {
+        try { await navigator.share({files: [file], text: caption()}); }
+        catch (err) { if (!err || err.name !== 'AbortError') plainDownload(blob, name); }
+      } else {
+        plainDownload(blob, name);
+      }
+    }
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'declined') { /* the viewer said no */ }
+    else if (code === 'rate_limited') toast('One moment, then try again.');
+    else { toast('Saving isn’t available here. Screenshot your ticket instead.'); saveBtn.hidden = true; }
+  } finally {
+    saveBtn.disabled = false;
+  }
+});
+
+/* start: a returning visitor sees their own ticket */
+try {
+  const v = localStorage.getItem(KEY);
+  if (v && isYmd(v) && v <= todayStr()) { startEl.value = v; cur = {days: diffDays(v, todayStr()), start: v, example: false, quick: null}; }
+} catch (e) { /* storage unavailable */ }
+render(false);
+})();
+</script>
+</body>
+</html>
