@@ -4,6 +4,10 @@
 
 A community for people between jobs. Count your days, collect ridiculous titles, and celebrate when someone escapes.
 
+### 👉 [Try the app: iamunemployed.pages.dev/app](https://iamunemployed.pages.dev/app/)
+
+Pick a nickname and a password and you're in. No email, no real name.
+
 This repository holds the waitlist website, the app with its server and database, and the early design work.
 
 ## What's inside
