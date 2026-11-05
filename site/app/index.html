@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>iAmUnemployed</title>
+<meta name="description" content="Count your days in the queue, collect ridiculous titles, and celebrate when someone escapes.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#19202A" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="/app/app.css">
+<script src="/app/app.js" defer></script>
+</head>
+<body>
+<div class="stage gx">
+  <div class="device" id="device" data-calm="false" data-escaped="false">
+    <header class="appbar gx">
+      <div class="logo"><span class="mark" aria-hidden="true">i</span><span id="logo-word" aria-hidden="true">AmUnemployed</span><span class="sr" id="logo-sr">iAmUnemployed</span></div>
+      <span class="streak" title="Day streak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.8c.5 2.8 4.4 4.6 4.4 9.2a5 5 0 0 1-10 0c0-1.9.9-3.3 2-4.2.2 1.7 1.1 2.7 2.3 2.9-.3-2.6.1-5.4 1.3-7.9z"/></svg><b id="streak">0</b><span class="sr"> day streak</span></span>
+    </header>
+
+    <main class="views" id="views">
+      <section class="view gx" id="view-home" data-view="home" aria-label="Queue"></section>
+      <section class="view gx" id="view-boards" data-view="boards" aria-label="Leaderboards" hidden></section>
+      <section class="view gx" id="view-feed" data-view="feed" aria-label="Feed" hidden></section>
+      <section class="view gx" id="view-fun" data-view="fun" aria-label="Fun" hidden></section>
+      <section class="view gx" id="view-me" data-view="me" aria-label="Me" hidden></section>
+    </main>
+
+    <nav class="tabbar gx" aria-label="Main">
+      <button class="tab" type="button" data-action="tab" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h17v3a1.75 1.75 0 0 0 0 3.5v3h-17v-3a1.75 1.75 0 0 0 0-3.5z"/><path d="M15 8.5v7" stroke-dasharray="1.5 2"/></svg></span>Queue</button>
+      <button class="tab" type="button" data-action="tab" data-tab="boards"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-6h5v6M9.5 20V9h5v11M15 20v-8h5v8M3 20h18"/></svg></span>Boards</button>
+      <button class="tab" type="button" data-action="tab" data-tab="feed"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H10l-4.5 3.5v-3.5h-1a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z"/></svg></span>Feed</button>
+      <button class="tab" type="button" data-action="tab" data-tab="fun"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 12h16M12 4v16"/></svg></span>Fun</button>
+      <button class="tab" type="button" data-action="tab" data-tab="me"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.3 3.8-5 7-5s5.8 1.7 7 5"/></svg></span>Me</button>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- share sheet -->
+    <div class="overlay" id="ov-share" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="share-h">
+        <div class="sheet-head"><h2 id="share-h">Your card for today</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div id="share-card"></div>
+        <div class="row fill"><button class="btn ghost small" type="button" data-action="shuffle">Another joke</button><button class="btn small" type="button" data-action="copy-share">Copy caption</button></div>
+        <p class="hint">Take a screenshot of the card and paste the caption with it on TikTok or Instagram.</p>
+      </div>
+    </div>
+
+    <!-- compose sheet -->
+    <div class="overlay" id="ov-compose" hidden>
+      <form class="sheet gx" id="compose-form" role="dialog" aria-modal="true" aria-labelledby="compose-h" novalidate>
+        <div class="sheet-head"><h2 id="compose-h">Share with the queue</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div class="field"><label for="composer-text">What’s on your mind?</label><textarea id="composer-text" maxlength="500" placeholder="A rejection, a win, a question, a rant. It all counts."></textarea></div>
+        <div class="field"><label for="composer-cat">Category</label><select id="composer-cat"></select></div>
+        <label class="set" for="composer-anon"><span><b>Post fully anonymously</b><small>Your nickname is hidden on this post.</small></span><input type="checkbox" class="switch" role="switch" id="composer-anon"></label>
+        <p class="err" role="alert" hidden></p>
+        <button class="btn wide" type="submit">Post</button>
+      </form>
+    </div>
+
+    <!-- crisis support sheet -->
+    <div class="overlay" id="ov-crisis" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="crisis-h">
+        <h2 id="crisis-h">That sounds really heavy.</h2>
+        <p class="hint">You don’t have to carry this alone. If you’re thinking about ending your life or you’re in danger, please reach out now. These lines are free and confidential.</p>
+        <div id="crisis-help"></div>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="crisis-edit">Back to my post</button><button class="btn" type="button" data-action="crisis-post">Post it</button></div>
+      </div>
+    </div>
+
+    <!-- escape sheet -->
+    <div class="overlay" id="ov-escape" hidden>
+      <form class="sheet gx" id="escape-form" role="dialog" aria-modal="true" aria-labelledby="escape-h" novalidate>
+        <div class="sheet-head"><h2 id="escape-h">Did you land a job?</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div class="field"><label for="esc-role">What’s the role? (optional)</label><input id="esc-role" maxlength="40" placeholder="e.g. Junior Copywriter" autocomplete="off"></div>
+        <label class="set" for="esc-wall"><span><b>Post my escape on the Wall</b><small>The whole queue gets to celebrate with you.</small></span><input type="checkbox" class="switch" role="switch" id="esc-wall" checked></label>
+        <p class="err" role="alert" hidden></p>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="close">Not yet</button><button class="btn escape" type="submit">Yes, I escaped!</button></div>
+      </form>
+    </div>
+
+    <!-- copy fallback sheet -->
+    <div class="overlay" id="ov-copy" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="copy-h">
+        <div class="sheet-head"><h2 id="copy-h">Copy this</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <p class="hint">Automatic copying is blocked here. The text is selected below, so copy it from this box.</p>
+        <textarea id="copy-text" readonly></textarea>
+        <button class="btn wide" type="button" data-action="close">Done</button>
+      </div>
+    </div>
+
+    <!-- delete account sheet -->
+    <div class="overlay" id="ov-delete" hidden>
+      <form class="sheet gx" id="delete-form" role="dialog" aria-modal="true" aria-labelledby="delete-h" novalidate>
+        <div class="sheet-head"><h2 id="delete-h">Delete your account?</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <p class="hint">This deletes your profile, check-ins, moves, posts, reactions and escapes for good. It can’t be undone. You can download your data first from the Me tab.</p>
+        <div class="field"><label for="del-nick">Type your nickname to confirm</label><input id="del-nick" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+        <p class="err" role="alert" hidden></p>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="close">Keep my account</button><button class="btn danger" type="submit">Delete for good</button></div>
+      </form>
+    </div>
+
+    <!-- escape ceremony -->
+    <div class="screen" id="scr-ceremony" role="dialog" aria-modal="true" aria-labelledby="cer-h" hidden>
+      <canvas id="confetti" aria-hidden="true"></canvas>
+      <div class="inner gx">
+        <div class="eyebrow">Escape confirmed</div>
+        <h1 id="cer-h">You’re out!</h1>
+        <div class="tk escaped" id="cer-ticket"></div>
+        <div class="wrapped two" id="cer-stats"></div>
+        <p class="cheers-line" data-cheers-home></p>
+        <p class="hint" id="cer-badges"></p>
+        <div class="row fill"><button class="btn ghost" type="button" data-action="copy-escape">Copy caption</button><button class="btn escape" type="button" id="cer-done" data-action="cer-done">Done</button></div>
+      </div>
+    </div>
+
+    <!-- sign up, log in, reset password -->
+    <div class="screen" id="scr-onboard" role="dialog" aria-modal="true" aria-label="Welcome" hidden>
+      <div class="inner gx" id="ob-1">
+        <div class="tk"><div class="tk-label">Your number</div><span class="led big">????</span><div class="tk-sub">days in the queue</div></div>
+        <h1>Welcome to the queue.</h1>
+        <p class="hint">Count your days, collect ridiculous titles and help each other out. When you land a job, the whole queue celebrates your escape.</p>
+        <button class="btn ticket wide" type="button" data-action="ob-next">Get my number</button>
+        <button class="btn ghost wide" type="button" data-action="ob-have">I already have an account</button>
+      </div>
+
+      <form class="inner gx" id="ob-form" novalidate hidden>
+        <h1>About you</h1>
+        <p class="hint">Takes 30 seconds. Your real name never appears anywhere.</p>
+        <div class="field"><label for="ob-nick">Nickname</label><div class="row"><input id="ob-nick" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="e.g. CoverLetterPoet"><button class="btn ghost small" type="button" data-action="ob-suggest">Suggest</button></div><small>3 to 20 letters or numbers. This is how you log in.</small></div>
+        <div class="field"><label for="ob-pass">Password</label><div class="row"><input id="ob-pass" type="password" autocomplete="new-password" maxlength="200"><button class="btn ghost small" type="button" data-action="peek" data-for="ob-pass" aria-pressed="false">Show</button></div><small>At least 8 characters. It’s scrambled on your device, so we never see it.</small></div>
+        <div class="field"><label for="ob-industry">Industry</label><select id="ob-industry"></select></div>
+        <div class="field"><label for="ob-country">Country</label><select id="ob-country"></select></div>
+        <div class="field"><label for="ob-start">When did your job search start?</label><input type="date" id="ob-start"></div>
+        <label class="set" for="ob-public"><span><b>Show me on public leaderboards</b><small>Off by default. You can change it any time.</small></span><input type="checkbox" class="switch" role="switch" id="ob-public"></label>
+        <p class="hint">By joining you agree to how we handle your data, explained in our <a href="/privacy" target="_blank" rel="noopener">privacy policy</a>.</p>
+        <p class="err" role="alert" hidden></p>
+        <button class="btn ticket wide" type="submit">Get my number</button>
+        <button class="linkish center" type="button" data-action="ob-have">I already have an account</button>
+      </form>
+
+      <form class="inner gx" id="ob-login" novalidate hidden>
+        <h1>Welcome back.</h1>
+        <p class="hint">Log in with your nickname and password.</p>
+        <div class="field"><label for="li-nick">Nickname</label><input id="li-nick" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label for="li-pass">Password</label><div class="row"><input id="li-pass" type="password" autocomplete="current-password" maxlength="200"><button class="btn ghost small" type="button" data-action="peek" data-for="li-pass" aria-pressed="false">Show</button></div></div>
+        <p class="err" role="alert" hidden></p>
+        <button class="btn ticket wide" type="submit">Log in</button>
+        <button class="btn ghost wide" type="button" data-action="ob-forgot">Forgot your password?</button>
+        <button class="linkish center" type="button" data-action="ob-next">New here? Get my number</button>
+      </form>
+
+      <form class="inner gx" id="ob-reset" novalidate hidden>
+        <h1>New password</h1>
+        <p class="hint">Use the recovery code you saved when you joined. It works once, and you’ll get a new one.</p>
+        <div class="field"><label for="rs-nick">Nickname</label><input id="rs-nick" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label for="rs-code">Recovery code</label><input id="rs-code" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX"></div>
+        <div class="field"><label for="rs-pass">New password</label><div class="row"><input id="rs-pass" type="password" autocomplete="new-password" maxlength="200"><button class="btn ghost small" type="button" data-action="peek" data-for="rs-pass" aria-pressed="false">Show</button></div><small>At least 8 characters.</small></div>
+        <p class="err" role="alert" hidden></p>
+        <button class="btn ticket wide" type="submit">Set new password</button>
+        <button class="linkish center" type="button" data-action="ob-have">Back to log in</button>
+        <p class="hint">Lost your code too? We can’t see your password or reset it by email, so the only way left is a new account.</p>
+      </form>
+
+      <div class="inner gx" id="ob-3" hidden></div>
+    </div>
+
+    <!-- loading, and problems reaching the server -->
+    <div class="screen" id="scr-splash">
+      <div class="inner gx">
+        <div class="tk"><div class="tk-label">Your number</div><span class="led big" aria-hidden="true">····</span><div class="tk-sub">days in the queue</div></div>
+        <p class="hint center" id="splash-msg" role="status">Getting your ticket…</p>
+        <button class="btn wide" type="button" data-action="retry" id="splash-retry" hidden>Try again</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

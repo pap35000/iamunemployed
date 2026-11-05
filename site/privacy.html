@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy · iAmUnemployed</title>
-<meta name="description" content="How iAmUnemployed handles your data: what we collect for the waitlist, why, and how to have it deleted.">
+<meta name="description" content="How iAmUnemployed handles your data: what the waitlist and the app store, why, who sees what, and how to download or delete it.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -53,42 +53,67 @@ ul{margin:0 0 12px;padding-left:1.2em;display:flex;flex-direction:column;gap:6px
 </header>
 
 <main class="wrap">
-  <p class="updated">Last updated 4 November 2026</p>
+  <p class="updated">Last updated 5 November 2026</p>
   <h1>Privacy</h1>
-  <p class="lede">The short version: we collect as little as possible, we only use your email to tell you when iAmUnemployed launches, and you can ask us to delete it at any time.</p>
+  <p class="lede">The short version: we collect as little as possible. The waitlist only uses your email to tell you when iAmUnemployed launches. The app keeps what you put into it so it works on any device, and you can download or delete all of it at any time from the Me tab.</p>
 
   <h2>Who we are</h2>
   <p>iAmUnemployed is run by <span class="todo">[YOUR NAME]</span>, <span class="todo">[CITY]</span>, Greece. You can reach us at <span class="todo">[CONTACT EMAIL]</span>.</p>
 
   <h2>What we collect</h2>
-  <p>If you join the waitlist, we collect:</p>
+  <p><b>If you join the waitlist</b>, we collect:</p>
   <ul>
     <li>your email address</li>
     <li>if you choose to tell us: when your job search started, where you heard about us, and your country</li>
   </ul>
   <p>The date you pick for the ticket on our homepage stays in your browser and is not sent to us. If you then open the waitlist form, we may fill that date in for you. It only reaches us if you submit the form.</p>
+  <p><b>If you use the app</b>, we store:</p>
+  <ul>
+    <li>your nickname, industry, country and the day your job search started</li>
+    <li>a scrambled check value of your password and of your recovery code. Your browser scrambles the password before sending anything, so we never receive the password itself.</li>
+    <li>what you do in the app: your daily mood check-ins, the moves you log, your posts, reactions and reports, your escapes, your Unicorn of the Week votes, your bingo card, the badges you claim and your settings</li>
+    <li>for security, for a short time: the IP addresses that sign-up and log-in attempts come from, so we can slow down abuse</li>
+  </ul>
+  <p>The app never asks for your real name, email address or phone number.</p>
+
+  <h2>Who sees what</h2>
+  <ul>
+    <li><b>Only you</b> see your mood check-ins, your totals, your badges and your settings.</li>
+    <li><b>Other members</b> see your posts with your nickname, title and days in the queue. If you post anonymously, they see none of those. Our database still links an anonymous post to your account, so you can delete it and so we can act on reports.</li>
+    <li><b>The leaderboards</b> show your nickname, days in the queue, moves this week and streak only if you turn on “Show me on public leaderboards”.</li>
+    <li><b>The Escapees wall</b> shows your nickname, days in the queue and the date only if you choose “Post my escape on the Wall”.</li>
+    <li>Reactions are shown as counts. Nobody sees who reacted.</li>
+  </ul>
 
   <h2>Why we use it</h2>
-  <p>To send you one email when iAmUnemployed launches, and to understand how many people are interested and where they found us. We use your data because you agreed to it when you signed up (consent, article 6(1)(a) of the GDPR). We never sell it and never use it for advertising.</p>
+  <ul>
+    <li><b>Waitlist:</b> to send you one email when iAmUnemployed launches, and to understand how many people are interested and where they found us. We use your data because you agreed to it when you signed up (consent, article 6(1)(a) of the GDPR).</li>
+    <li><b>App:</b> to run the app for you and for the community (contract, article 6(1)(b)), and to keep it safe from spam and abuse (legitimate interests, article 6(1)(f)). A mood check-in can say something about how you’re feeling, so we only store one when you choose to log it, and it’s deleted with your account (explicit consent, article 9(2)(a)).</li>
+  </ul>
+  <p>We never sell your data and never use it for advertising.</p>
 
   <h2>Where it is kept</h2>
-  <p>The waitlist form runs on Google Forms and the answers are stored in Google Sheets, so Google processes them on our behalf. To send the launch email we may use an email service such as Brevo or Mailchimp.</p>
+  <p>The app and its database run on Cloudflare (Cloudflare Pages and Cloudflare D1), which processes the data on our behalf. The waitlist form runs on Google Forms and the answers are stored in Google Sheets, so Google processes them on our behalf. To send the launch email we may use an email service such as Brevo or Mailchimp.</p>
 
   <h2>How long we keep it</h2>
-  <p>Until we have sent the launch email. If iAmUnemployed has not launched within 12 months, we delete the waitlist. You can ask us to delete your details sooner, at any time.</p>
+  <ul>
+    <li><b>App:</b> until you delete your account. Me → Delete my account removes your profile, check-ins, moves, posts, reactions and escapes from our database straight away. Cloudflare’s automatic backups may keep a copy for a short time after that.</li>
+    <li><b>Log-ins:</b> a log-in ends after 60 days without use. The IP addresses kept for security are normally removed within a day.</li>
+    <li><b>Waitlist:</b> until we have sent the launch email. If iAmUnemployed has not launched within 12 months, we delete the waitlist. You can ask us to delete your details sooner, at any time.</li>
+  </ul>
 
   <h2>Other services this site uses</h2>
   <ul>
     <li><b>Google Fonts</b> provides the typefaces. Your browser fetches them from Google, which sees your IP address.</li>
-    <li><b>Our host</b>, <span class="todo">[Cloudflare or Netlify]</span>, keeps standard server logs, such as IP addresses, for security.</li>
+    <li><b>Our host</b>, Cloudflare, keeps standard server logs, such as IP addresses, for security.</li>
     <li><b>Cloudflare Web Analytics</b> counts visits without cookies and without identifying you. <span class="todo">[delete this line if you don’t turn analytics on]</span></li>
   </ul>
 
   <h2>Cookies</h2>
-  <p>We don’t use cookies or advertising trackers. Your browser remembers the start date you picked so your ticket looks the same next time. Clearing this site’s data in your browser removes it.</p>
+  <p>The app uses one cookie, only to keep you logged in. It’s strictly necessary, so it needs no consent banner, and it’s removed when you log out. We don’t use advertising or tracking cookies. Your browser also remembers the start date you pick on our homepage and the last tab you had open in the app. Clearing this site’s data in your browser removes them.</p>
 
   <h2>Your rights</h2>
-  <p>You can ask to see, correct or delete your data, or withdraw your consent, at any time. Email <span class="todo">[CONTACT EMAIL]</span> and we’ll handle it within 30 days. If you think we have handled your data wrongly, you can complain to the Hellenic Data Protection Authority at <a href="https://www.dpa.gr" target="_blank" rel="noopener noreferrer">dpa.gr</a>, or to the data protection authority where you live.</p>
+  <p>You can see, correct or delete your data, or withdraw your consent, at any time. In the app, Me → Download my data gives you everything we store about you, and Me → Delete my account removes it. For anything else, email <span class="todo">[CONTACT EMAIL]</span> and we’ll handle it within 30 days. If you think we have handled your data wrongly, you can complain to the Hellenic Data Protection Authority at <a href="https://www.dpa.gr" target="_blank" rel="noopener noreferrer">dpa.gr</a>, or to the data protection authority where you live.</p>
 </main>
 
 <footer class="foot wrap">

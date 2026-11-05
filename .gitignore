@@ -2,3 +2,11 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local database from dev/local-server.mjs
+.data/
+
+# Tool folders
+node_modules/
+.wrangler/
+.claude/
