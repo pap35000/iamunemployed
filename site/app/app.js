@@ -77,7 +77,8 @@ const JOKES = [
   () => `Applied to ${S.totals.applied} jobs. Heard back from my mum.`,
   d => `Current title: ${titleFor(d)}. Salary: vibes.`,
   () => `Ghosted ${S.totals.ghosted} times. Starting to think I’m the ghost.`,
-  () => 'Still here. Still sending CVs at 3am.'
+  () => 'Still here. Still sending CVs at 3am.',
+  () => 'Entry-level role, they said. Only 5 years of experience required.'
 ];
 const NICKS = ['CoverLetterPoet', 'InterviewSurvivor', 'RejectionCollector', 'PortfolioPending', 'OpenToWorkOwl', 'CVsAtMidnight', 'FrappeFanatic', 'Ghosted_Twice'];
 const CRISIS = /\b(hopeless|worthless|give up on (life|everything)|giving up on (life|everything)|end it all|end my life|can[’']?t go on|kill myself|suicid\w*|want to die|no reason to live|better off dead)\b/i;
