@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>iAmUnemployed · Unemployed? Take a number.</title>
-<meta name="description" content="A community for people between jobs. Count your days, collect ridiculous titles, swap stories with people who get it, and celebrate when someone escapes. Join the waitlist.">
+<meta name="description" content="A community for people between jobs. Count your days, collect ridiculous titles, swap stories with people who get it, and celebrate when someone escapes. Free, no email needed.">
 <meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#11161C" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -77,7 +77,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .logo{display:flex;align-items:center;font:900 22px/1 var(--f-display);letter-spacing:-.02em;white-space:nowrap}
 .mark{display:inline-grid;place-items:center;width:24px;height:27px;margin-right:3px;border-radius:6px;background:var(--ticket);color:var(--ticket-ink);font:800 16px var(--f-mono);letter-spacing:0}
 .mark.esc{background:var(--escape);color:var(--on-escape)}
-.soon{font:700 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted);white-space:nowrap}
+.login{font:700 15px var(--f-body);border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;min-height:42px;display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap}
 
 /* hero */
 .hero{display:grid;grid-template-columns:minmax(0,1fr);gap:36px;align-items:center;padding-block:20px 64px}
@@ -192,7 +192,7 @@ h2{font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;letter-spac
 
 <header class="top wrap">
   <div class="logo"><span class="mark" aria-hidden="true">i</span><span aria-hidden="true">AmUnemployed</span><span class="sr">iAmUnemployed</span></div>
-  <span class="soon">Coming soon</span>
+  <a class="login" href="app/#login">Log in</a>
 </header>
 
 <main>
@@ -201,8 +201,8 @@ h2{font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;letter-spac
       <p class="eyebrow">For people between jobs</p>
       <h1 id="hero-h">Unemployed? <span class="hl">Take a number.</span></h1>
       <p class="lede">iAmUnemployed is a community for the job hunt. Count your days, collect ridiculous titles, swap stories with people who get it, and celebrate loudly when someone escapes.</p>
-      <a class="btn ticket" data-cta data-label="Save my spot in the queue" href="#" target="_blank" rel="noopener">Save my spot in the queue</a>
-      <p class="note" data-cta-note data-live="Free. Launching in English first. One email when it’s ready.">Free. Launching in English first. One email when it’s ready.</p>
+      <a class="btn ticket" href="app/">Join now</a>
+      <p class="note">Pick a nickname and you’re in. Free, and no email needed.</p>
     </div>
 
     <div class="machine">
@@ -311,16 +311,16 @@ h2{font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;letter-spac
   <section class="band" aria-labelledby="band-h">
     <div class="wrap band-inner">
       <h2 id="band-h">The queue is better together.</h2>
-      <p>Join the waitlist and be first in when iAmUnemployed opens.</p>
-      <a class="btn ticket" data-cta data-label="Save my spot in the queue" href="#" target="_blank" rel="noopener">Save my spot in the queue</a>
-      <p class="note" data-cta-note data-live="Free. Launching in English first. One email when it’s ready, nothing else.">Free. Launching in English first. One email when it’s ready, nothing else.</p>
+      <p>Take your number, find people who get it, and be there when someone escapes.</p>
+      <a class="btn ticket" href="app/">Join now</a>
+      <p class="note">Pick a nickname and you’re in. Free, and no email needed. Already a member? <a href="app/#login">Log in</a>.</p>
     </div>
   </section>
 </main>
 
 <footer class="foot wrap">
   <p>Having a hard time right now? <a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a> lists free, confidential support lines in your country.</p>
-  <p>iAmUnemployed · 2026 · We only use your email to tell you when we launch. <a href="privacy.html">Privacy</a></p>
+  <p>iAmUnemployed · 2026 · No real name, no email, no ads. <a href="privacy.html">Privacy</a></p>
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -328,13 +328,6 @@ h2{font-weight:900;font-size:clamp(1.9rem,5vw,3rem);line-height:1.05;letter-spac
 <script>
 (() => {
 'use strict';
-
-/* ============================================================
-   WAITLIST LINK: paste your form link between the quotes.
-   Optional tokens for pre-filled links: {source} comes from ?utm_source=... or #tiktok / #instagram,
-   {start} is the visitor's start date (YYYY-MM-DD) and {days} their day count.
-   ============================================================ */
-const WAITLIST_URL = '';
 
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
@@ -356,10 +349,6 @@ const TITLES = [
   [366, Infinity, 'Living Legend', 'They will tell stories about this queue.']
 ];
 const tierOf = d => Math.max(0, TITLES.findIndex(t => d >= t[0] && d <= t[1]));
-
-const SOURCES = {tiktok: 'tiktok', instagram: 'instagram', ig: 'instagram', x: 'x', twitter: 'x', reddit: 'reddit', linkedin: 'linkedin', facebook: 'facebook', friend: 'friend', whatsapp: 'whatsapp'};
-const params = new URLSearchParams(location.search);
-const SOURCE = SOURCES[(params.get('utm_source') || params.get('src') || (location.hash || '').slice(1)).toLowerCase()] || 'direct';
 
 const KEY = 'iamunemployed-landing-start';
 let cur = {days: 147, start: '', example: true, quick: null};
@@ -390,23 +379,6 @@ function rollTo(n) {
   requestAnimationFrame(step);
 }
 
-/* waitlist links */
-function waitlistUrl() {
-  if (!WAITLIST_URL) return '';
-  return WAITLIST_URL
-    .replace(/\{source\}/g, encodeURIComponent(SOURCE))
-    .replace(/\{start\}/g, cur.example ? '' : encodeURIComponent(cur.start))
-    .replace(/\{days\}/g, cur.example ? '' : String(cur.days));
-}
-function updateCtas() {
-  const url = waitlistUrl();
-  $$('[data-cta]').forEach(a => {
-    if (url) { a.href = url; a.removeAttribute('aria-disabled'); a.textContent = a.dataset.label; }
-    else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); a.textContent = 'Sign-ups open soon'; }
-  });
-  $$('[data-cta-note]').forEach(p => { p.textContent = url ? p.dataset.live : 'The waitlist opens in a few days. Follow #iAmUnemployed to hear first.'; });
-}
-
 function render(animate) {
   const d = cur.days, t = TITLES[tierOf(d)];
   if (animate) rollTo(d); else { shown = d; $('#tk-num').textContent = pad(d); }
@@ -418,7 +390,6 @@ function render(animate) {
     li.querySelector('.tag').textContent = cur.example ? 'Example' : 'You';
   });
   $$('.quick .chip').forEach(c => c.setAttribute('aria-pressed', String(!cur.example && Number(c.dataset.days) === cur.quick)));
-  updateCtas();
 }
 function announce() {
   const t = TITLES[tierOf(cur.days)];

@@ -730,6 +730,8 @@ function startSignup() {
   $('#ob-country').value = guessCountry();
   const t = todayStr(), st = $('#ob-start');
   st.max = t; st.value = addDays(t, -30);
+  // reuse the start date picked on the homepage ticket, if there is one
+  try { const v = localStorage.getItem('iamunemployed-landing-start'); if (v && /^\d{4}-\d{2}-\d{2}$/.test(v) && v <= t) st.value = v; } catch (e) { /* storage unavailable */ }
   $('#ob-public').checked = false;
   showPane('ob-form', '#ob-nick');
 }
@@ -830,7 +832,11 @@ async function boot() {
   try {
     enterApp((await api('/me')).me);
   } catch (err) {
-    if (err.status === 401) { showPane('ob-1'); return; }
+    if (err.status === 401) {
+      // the homepage links here with #login for members who already have an account
+      if (location.hash === '#login') showPane('ob-login', '#li-nick'); else showPane('ob-1');
+      return;
+    }
     $('#splash-msg').textContent = err.message;
     $('#splash-retry').hidden = false;
   }

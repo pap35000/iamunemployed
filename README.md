@@ -42,7 +42,7 @@ The API routes are listed at the top of `server/app.js`.
 
 ## Before launch
 
-- `site/index.html`: put the Google Form link in `WAITLIST_URL`, and replace `YOUR-DOMAIN` in the `og:image` tag.
+- `site/index.html`: replace `YOUR-DOMAIN` in the `og:image` tag. Its buttons open the app (`app/`, and `app/#login` for log-in).
 - `site/privacy.html`: fill in the highlighted placeholders (name, city, contact email).
 
 ## Publishing
