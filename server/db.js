@@ -121,6 +121,11 @@ const MIGRATIONS = [
       window_start INTEGER NOT NULL,
       hits INTEGER NOT NULL
     )`
+  ],
+
+  // Step 2: a weekly application goal each member can set for themselves (0 = no goal).
+  [
+    'ALTER TABLE users ADD COLUMN week_goal INTEGER NOT NULL DEFAULT 0'
   ]
 ];
 

@@ -59,7 +59,7 @@ Then give the app its database:
 
 1. Create a D1 database, for example `iamunemployed`.
 2. In the Pages project, add a D1 binding with the variable name `DB` that points to it (Settings → Bindings).
-3. Deploy again. `https://your-domain/api/health` should answer `{"ok":true,"schema":1}`.
+3. Deploy again. `https://your-domain/api/health` should answer `{"ok":true,"schema":2}` (the number grows as new database steps are added).
 4. Optional: add an `ADMIN_NICKS` environment variable with your nickname.
 
 Every push to `main` then updates the live site. Uploading the `site` folder by hand publishes only the pages, without the API or the database.

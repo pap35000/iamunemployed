@@ -92,7 +92,7 @@ await test('without a database: a clear 503', async () => {
 await test('the first request creates the tables', async () => {
   const r = await new Member().get('/health');
   assert.equal(r.status, 200);
-  assert.deepEqual(r.data, { ok: true, schema: 1 });
+  assert.deepEqual(r.data, { ok: true, schema: 2 });
   const tables = db.query("SELECT name AS n FROM sqlite_master WHERE type = 'table'").map(t => t.n);
   for (const t of ['meta', 'users', 'sessions', 'checkins', 'moves', 'escapes', 'posts', 'reactions', 'reports', 'votes', 'rate_limits']) {
     assert.ok(tables.includes(t), t);
@@ -177,6 +177,21 @@ await test('moves add up for today, this week and in total', async () => {
   assert.deepEqual(me.today.moves, { applied: 3, rejected: 1 });
   assert.equal(me.weekMoves, 4);
   assert.equal((await alice.post('/moves', { kind: 'napped' })).status, 400);
+});
+
+await test('a weekly application goal is saved, checked and counted', async () => {
+  let me = (await alice.get('/me')).data.me;
+  assert.equal(me.weekGoal, 0, 'no goal until the member sets one');
+  assert.equal(me.weekApplied, 3, 'only applications count toward the goal');
+  me = (await alice.patch('/me', { weekGoal: 10 })).data.me;
+  assert.equal(me.weekGoal, 10);
+  assert.equal(me.weekApplied, 3);
+  for (const bad of [-1, 51, 2.5, '10', true, null]) {
+    assert.equal((await alice.patch('/me', { weekGoal: bad })).status, 400, JSON.stringify(bad));
+  }
+  assert.equal((await alice.get('/me')).data.me.weekGoal, 10, 'bad values change nothing');
+  assert.equal((await alice.get('/me/export')).data.profile.weeklyApplicationGoal, 10);
+  assert.equal((await alice.patch('/me', { weekGoal: 0 })).data.me.weekGoal, 0, 'the goal can be cleared');
 });
 
 await test('moves per day are capped', async () => {

@@ -123,7 +123,7 @@ async function passwordKey(nick, password) {
 /* state */
 const TAB_KEY = 'iamunemployed-tab';
 let S = null; // the signed-in member, as the server sees them
-const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null};
+const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null};
 let DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
 let meAt = 0;
 
@@ -138,7 +138,7 @@ function setMe(me) {
 function forget() {
   S = null;
   DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
-  Object.assign(UI, {backConfirm: false, pending: null, armed: null});
+  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null});
 }
 function loadTab() { try { const t = localStorage.getItem(TAB_KEY); if (t) UI.tab = t; } catch (e) { /* storage unavailable */ } }
 function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { /* storage unavailable */ } }
@@ -228,6 +228,42 @@ function helpHTML() {
   return `<div class="helpbox">${lines.map(([n, t]) => `<div class="line"><b>${n}</b><span>${t}</span></div>`).join('')}<div class="line"><b><a href="https://findahelpline.com" target="_blank" rel="noopener noreferrer">findahelpline.com</a></b><span>${lines.length ? 'Free, confidential lines in other countries.' : 'Free, confidential lines in your country.'}</span></div></div>`;
 }
 
+/* weekly application goal */
+const GOAL_MAX = 50;
+function goalHTML() {
+  const g = S.weekGoal || 0, n = S.weekApplied || 0;
+  if (UI.goalEdit) {
+    return `<form class="block" id="goal-form" novalidate>
+    <h2>This week’s goal</h2>
+    <div class="field"><label for="goal-n">Applications to send this week</label>
+      <div class="row"><input id="goal-n" type="number" inputmode="numeric" min="1" max="${GOAL_MAX}" step="1" value="${g || 5}" aria-describedby="goal-help" data-k="goal-n"><button class="btn small" type="submit" data-k="goal-save">Save goal</button></div>
+      <small id="goal-help">From 1 to ${GOAL_MAX}. Only you see it, and the count starts over every Monday.</small></div>
+    <p class="err" role="alert" hidden></p>
+    <div class="row">${g ? '<button class="btn ghost small" type="button" data-action="goal-clear" data-k="goal-clear">Remove goal</button>' : ''}<button class="btn ghost small" type="button" data-action="goal-cancel" data-k="goal-cancel">Cancel</button></div>
+  </form>`;
+  }
+  if (!g) {
+    return `<div class="block">
+    <h2>This week’s goal</h2>
+    <p class="hint">Pick how many applications you want to send this week. A number you choose beats an inbox that chooses for you.</p>
+    <button class="btn ghost small" data-action="goal-edit" data-k="goal-edit">Set a weekly goal</button>
+  </div>`;
+  }
+  const done = n >= g, left = g - n, label = `${n} of ${g} ${g === 1 ? 'application' : 'applications'}`;
+  const msg = done
+    ? (n > g ? `Goal smashed: ${n - g} extra. The hiring process should take notes.` : 'Goal reached. Anything more this week is a bonus.')
+    : `${left} more to go. The count starts over on Monday.`;
+  return `<div class="block">
+    <h2>This week’s goal</h2>
+    <div class="progress goal">
+      <div class="bar${done ? ' done' : ''}" role="progressbar" aria-label="Weekly application goal" aria-valuemin="0" aria-valuemax="${g}" aria-valuenow="${Math.min(n, g)}" aria-valuetext="${label}"><i style="width:${Math.min(100, Math.round((n / g) * 100))}%"></i></div>
+      <span>${label}</span>
+    </div>
+    <p class="hint">${esc(msg)}</p>
+    <button class="btn ghost small" data-action="goal-edit" data-k="goal-edit">Change goal</button>
+  </div>`;
+}
+
 /* views */
 function homeHTML() {
   const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
@@ -260,6 +296,7 @@ function homeHTML() {
     <div class="chips">${MOVES.map(([k, l]) => `<button class="chip" data-action="move" data-move="${k}" data-k="move-${k}">${l}${S.today.moves[k] ? `<span class="n">${S.today.moves[k]}</span>` : ''}</button>`).join('')}</div>
     <p class="log">${esc(logLine)}</p>
   </div>
+  ${goalHTML()}
   <div class="block joke">
     <h2>Share my day</h2>
     <p class="hint">Turn today into a meme card for TikTok or Instagram.</p>
@@ -707,6 +744,22 @@ function saveSettings(change, okMsg) {
     render();
   });
 }
+function focusKey(k) { const el = $(`#view-${UI.tab} [data-k="${k}"]`); if (el) el.focus({preventScroll: true}); }
+function saveGoal(n, okMsg) {
+  return queued(async () => {
+    setMe((await api('/me', 'PATCH', {weekGoal: n})).me);
+    UI.goalEdit = false;
+    toast(okMsg);
+    render();
+    focusKey('goal-edit');
+  });
+}
+function onGoal(form) {
+  const raw = $('#goal-n').value.trim();
+  const n = Number(raw);
+  if (!/^\d{1,2}$/.test(raw) || n < 1 || n > GOAL_MAX) return formError(form, `Pick a number from 1 to ${GOAL_MAX}.`, '#goal-n');
+  return submitting(form, () => saveGoal(n, `Goal set: ${n} ${n === 1 ? 'application' : 'applications'} this week. You’ve got this.`));
+}
 function saveBingo() {
   const card = JSON.parse(JSON.stringify(S.bingo));
   queued(() => api('/me/game', 'PUT', {bingo: card})).catch(err => toast(err.status ? err.message : 'Couldn’t save your bingo card. Check your connection.'));
@@ -856,14 +909,18 @@ const A = {
   move(el) {
     const k = el.dataset.move;
     return queued(async () => {
-      const before = S.grindRank;
+      const before = S.grindRank, appliedBefore = S.weekApplied || 0;
       const names = await withBadges(async () => setMe((await api('/moves', 'POST', {kind: k})).me));
       let msg = k === 'ghosted' ? `Ghosting logged. Ghost Whisperer ${Math.min(S.totals.ghosted, 10)}/10.` : MOVE_TOAST[k];
+      if (S.weekGoal && appliedBefore < S.weekGoal && S.weekApplied >= S.weekGoal) msg += ' Weekly goal reached!';
       if (!S.calm && S.grindRank < before) msg += ` You’re now #${S.grindRank} on Grind of the Week.`;
       delete DATA.boards.grind;
       toast(msg + unlockedMsg(names)); render();
     });
   },
+  'goal-edit'() { UI.goalEdit = true; render(); const i = $('#goal-n'); if (i) { i.focus({preventScroll: true}); i.select(); } },
+  'goal-cancel'() { UI.goalEdit = false; render(); focusKey('goal-edit'); },
+  'goal-clear'() { return saveGoal(0, 'Goal removed. Set a new one whenever you like.'); },
   'open-share'() { UI.joke = days() % JOKES.length; renderShare(); openOv('ov-share'); },
   shuffle() { UI.joke = (UI.joke + 1) % JOKES.length; renderShare(); },
   'copy-share'() { copyText(shareCaption()); },
@@ -1031,7 +1088,7 @@ document.addEventListener('input', e => {
   const box = form && $('.err', form);
   if (box && !box.hidden) box.hidden = true;
 });
-const FORMS = {'compose-form': onCompose, 'escape-form': onEscape, 'hire-form': onHire, 'ob-form': onSignup, 'ob-login': onLogin, 'ob-reset': onReset, 'delete-form': onDelete};
+const FORMS = {'goal-form': onGoal, 'compose-form': onCompose, 'escape-form': onEscape, 'hire-form': onHire, 'ob-form': onSignup, 'ob-login': onLogin, 'ob-reset': onReset, 'delete-form': onDelete};
 document.addEventListener('submit', e => {
   e.preventDefault();
   const run = FORMS[e.target.id];

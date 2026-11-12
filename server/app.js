@@ -7,7 +7,7 @@
 //   POST   /api/auth/reset                new password     {nick, code, key}
 //   POST   /api/auth/logout
 //   GET    /api/me                        the signed-in member
-//   PATCH  /api/me                        settings         {publicBoard, calm, mentor, country, industry}
+//   PATCH  /api/me                        settings         {publicBoard, calm, mentor, country, industry, weekGoal}
 //   DELETE /api/me                        delete account   {nick}
 //   PUT    /api/me/game                   bingo and badges {bingo, claimed}
 //   GET    /api/me/export                 everything stored about the member, as a file
@@ -48,6 +48,7 @@ const MOVE_CAP_KIND = 25;  // moves of one kind per day
 const MOVE_CAP_DAY = 60;   // moves of all kinds per day
 const POST_MAX = 500;      // characters per post
 const FREE_CELL = 5;       // the bingo card's free square
+const GOAL_MAX = 50;       // highest weekly application goal
 
 const ROUTES = [
   ['GET', /^\/api\/health$/, health, false],
@@ -292,7 +293,8 @@ async function loadMe(ctx, userId) {
     db.prepare('SELECT COUNT(*) AS n FROM votes WHERE user_id = ?1').bind(userId),
     db.prepare(GRIND_AHEAD).bind(userId, week),
     db.prepare(`SELECT COUNT(*) AS n FROM reactions WHERE kind = 'congrats' AND post_id =
-      (SELECT post_id FROM escapes WHERE user_id = ?1 ORDER BY id DESC LIMIT 1)`).bind(userId)
+      (SELECT post_id FROM escapes WHERE user_id = ?1 ORDER BY id DESC LIMIT 1)`).bind(userId),
+    db.prepare("SELECT COALESCE(SUM(n), 0) AS n FROM moves WHERE user_id = ?1 AND day >= ?2 AND kind = 'applied'").bind(userId, week)
   ]);
   const rows = i => r[i].results;
   const u = rows(0)[0];
@@ -324,6 +326,8 @@ async function loadMe(ctx, userId) {
     streak: liveStreak(u, today),
     lastCheckin: u.last_checkin,
     weekMoves: rows(3)[0].n,
+    weekGoal: u.week_goal || 0,
+    weekApplied: rows(11)[0].n,
     today: { date: today, mood: rows(4)[0] ? rows(4)[0].mood : null, moves: todayMoves },
     totals,
     claimed: game.claimed,
@@ -359,6 +363,11 @@ async function updateMe(ctx) {
   if ('industry' in body) {
     if (!INDUSTRIES.includes(body.industry)) fail(400, 'bad_input', 'Unknown industry.');
     set('industry', body.industry);
+  }
+  if ('weekGoal' in body) {
+    const goal = body.weekGoal;
+    if (!Number.isInteger(goal) || goal < 0 || goal > GOAL_MAX) fail(400, 'bad_input', `Pick a goal from 0 to ${GOAL_MAX}.`);
+    set('week_goal', goal);
   }
   if (!sets.length) fail(400, 'bad_input', 'Nothing to change.');
   await db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?1`).bind(user.id, ...values).run();
@@ -428,6 +437,7 @@ async function exportMe(ctx) {
       onPublicLeaderboards: !!user.public_board,
       calmMode: !!user.calm,
       mentor: !!user.mentor,
+      weeklyApplicationGoal: user.week_goal || 0,
       escaped: !!user.escaped,
       cameBackAfterEscaping: !!user.sequel,
       streak: user.streak,
