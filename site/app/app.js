@@ -264,6 +264,26 @@ function goalHTML() {
   </div>`;
 }
 
+/* private mood history on the Me tab */
+const MOOD_DAYS = 14;
+function moodStripHTML() {
+  const end = S.today.date, start = addDays(end, 1 - MOOD_DAYS);
+  const byDay = new Map((S.moodDays || []).map(c => [c.day, c.mood]));
+  const cells = [];
+  for (let i = 0; i < MOOD_DAYS; i++) {
+    const day = addDays(start, i), mood = MOODS.find(([k]) => k === byDay.get(day));
+    const date = parseYmd(day), long = date.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
+    const label = `${i === MOOD_DAYS - 1 ? 'Today' : long}: ${mood ? mood[2] : 'no check-in'}`;
+    cells.push(`<li class="${mood ? 'on' : ''}${day === end ? ' today' : ''}" title="${esc(label)}"><span class="sr">${esc(label)}</span><span class="e" aria-hidden="true">${mood ? mood[1] : '·'}</span><span class="d" aria-hidden="true">${esc(date.toLocaleDateString('en-GB', {weekday: 'narrow'}))}</span></li>`);
+  }
+  const n = byDay.size;
+  const hint = n
+    ? `You checked in on ${n} of the last ${MOOD_DAYS} days. Only you can see this, which is more attention than most applications get.`
+    : 'Check in on the Queue tab and your moods will line up here. Only you can see this.';
+  return `<h3 id="mood-h">Your last ${MOOD_DAYS} days</h3>
+  <div class="block mood-strip"><ol aria-labelledby="mood-h">${cells.join('')}</ol><p class="hint">${esc(hint)}</p></div>`;
+}
+
 /* views */
 function homeHTML() {
   const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
@@ -480,6 +500,7 @@ function meHTML() {
       <div class="pills">${S.escaped ? '' : `<span class="pill joke">${titleFor(d)}</span>`}${S.escapeNo ? '<span class="pill esc">Escapee</span>' : ''}${S.escaped && S.mentor ? '<span class="pill">Mentor</span>' : ''}${S.admin ? '<span class="pill">Admin</span>' : ''}</div></div></div>
   <h3>Your Wrapped so far</h3>
   <div class="wrapped">${tiles.map(([n, l]) => `<div><b>${fmt(n)}</b><span>${l}</span></div>`).join('')}</div>
+  ${moodStripHTML()}
   <h3>Badges</h3>
   <div class="badges">${badges}</div>
   <h3>Settings</h3>

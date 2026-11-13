@@ -229,6 +229,12 @@ textarea{resize:vertical;min-height:120px;line-height:1.45}
 .wrapped>div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px}
 .wrapped b{display:block;font:700 20px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
 .wrapped span{display:block;font-size:11.5px;line-height:1.3;color:var(--muted)}
+.mood-strip ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px}
+.mood-strip li{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0 3px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.mood-strip li.today{border-color:var(--ink)}
+.mood-strip .e{font-size:16px;line-height:1.2;color:var(--muted)}
+.mood-strip li.on .e{color:inherit}
+.mood-strip .d{font:600 10px/1 var(--f-mono);color:var(--muted)}
 .badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .badge{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
 .badge.earned{background:var(--ticket-soft);border-color:transparent}

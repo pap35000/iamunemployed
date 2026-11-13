@@ -49,6 +49,7 @@ const MOVE_CAP_DAY = 60;   // moves of all kinds per day
 const POST_MAX = 500;      // characters per post
 const FREE_CELL = 5;       // the bingo card's free square
 const GOAL_MAX = 50;       // highest weekly application goal
+const MOOD_DAYS = 14;      // days of mood history on the Me tab
 
 const ROUTES = [
   ['GET', /^\/api\/health$/, health, false],
@@ -294,7 +295,9 @@ async function loadMe(ctx, userId) {
     db.prepare(GRIND_AHEAD).bind(userId, week),
     db.prepare(`SELECT COUNT(*) AS n FROM reactions WHERE kind = 'congrats' AND post_id =
       (SELECT post_id FROM escapes WHERE user_id = ?1 ORDER BY id DESC LIMIT 1)`).bind(userId),
-    db.prepare("SELECT COALESCE(SUM(n), 0) AS n FROM moves WHERE user_id = ?1 AND day >= ?2 AND kind = 'applied'").bind(userId, week)
+    db.prepare("SELECT COALESCE(SUM(n), 0) AS n FROM moves WHERE user_id = ?1 AND day >= ?2 AND kind = 'applied'").bind(userId, week),
+    db.prepare('SELECT day, mood FROM checkins WHERE user_id = ?1 AND day >= ?2 AND day <= ?3 ORDER BY day')
+      .bind(userId, addDays(today, 1 - MOOD_DAYS), today)
   ]);
   const rows = i => r[i].results;
   const u = rows(0)[0];
@@ -328,6 +331,8 @@ async function loadMe(ctx, userId) {
     weekMoves: rows(3)[0].n,
     weekGoal: u.week_goal || 0,
     weekApplied: rows(11)[0].n,
+    // Private to the member: never part of a board, post or other member's response.
+    moodDays: rows(12).filter(c => MOODS.includes(c.mood)).map(c => ({ day: c.day, mood: c.mood })),
     today: { date: today, mood: rows(4)[0] ? rows(4)[0].mood : null, moves: todayMoves },
     totals,
     claimed: game.claimed,

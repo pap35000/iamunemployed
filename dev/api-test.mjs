@@ -169,6 +169,28 @@ await test('a mood check-in starts the streak', async () => {
   assert.equal((await alice.post('/checkin', { mood: 'ecstatic' })).status, 400);
 });
 
+await test('the mood history holds only the last 14 days, oldest first', async () => {
+  const m = new Member();
+  await join(m, 'Moody_7', { publicBoard: false, startDate: ymd(START - 30 * DAY) });
+  for (const [ago, mood] of [[20, 'awful'], [13, 'low'], [3, 'good'], [1, 'meh']]) {
+    m.now = START - ago * DAY;
+    assert.equal((await m.post('/checkin', { mood })).status, 200);
+  }
+  m.now = START;
+  let me = (await m.get('/me')).data.me;
+  assert.deepEqual(me.moodDays, [
+    { day: ymd(START - 13 * DAY), mood: 'low' },
+    { day: ymd(START - 3 * DAY), mood: 'good' },
+    { day: ymd(START - DAY), mood: 'meh' }
+  ], 'day 14 ago and older are left out');
+  me = (await m.post('/checkin', { mood: 'okay' })).data.me;
+  assert.deepEqual(me.moodDays.at(-1), { day: TODAY, mood: 'okay' }, 'today appears right after checking in');
+  assert.equal(me.moodDays.length, 4);
+  assert.deepEqual((await new Member().post('/auth/signup', {
+    nick: 'Fresh_8', key: fakeKey(), industry: 'Tech', country: 'GR', startDate: TODAY, publicBoard: false
+  })).data.me.moodDays, [], 'a new member starts with an empty history');
+});
+
 await test('moves add up for today, this week and in total', async () => {
   for (let i = 0; i < 3; i++) await alice.post('/moves', { kind: 'applied' });
   const me = (await alice.post('/moves', { kind: 'rejected' })).data.me;
