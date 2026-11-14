@@ -264,6 +264,28 @@ function goalHTML() {
   </div>`;
 }
 
+/* days since the last logged interview, on the Queue tab */
+function interviewHTML() {
+  const last = S.lastInterview;
+  if (!last) {
+    return `<div class="block since">
+    <h2>Since your last interview</h2>
+    <p class="hint">No interviews logged yet. When you land one, tap Interview above and this counter starts.</p>
+  </div>`;
+  }
+  const n = Math.max(0, diffDays(last, S.today.date));
+  const when = n === 0 ? 'Today' : n === 1 ? 'Yesterday' : parseYmd(last).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
+  const tip = n === 0 ? 'Go get them. Then go get a snack.'
+    : n <= 7 ? 'Still warm. A short thank-you note never hurts.'
+    : 'Long gaps are normal. Hiring moves at the speed of a committee that meets to schedule meetings.';
+  return `<div class="block since">
+    <h2>Since your last interview</h2>
+    <p class="since-n"><b>${fmt(n)}</b> <span>${n === 1 ? 'day' : 'days'}</span></p>
+    <p class="hint">Last one: ${esc(when)}.</p>
+    <p class="hint${n > 7 ? ' joke' : ''}">${esc(tip)}</p>
+  </div>`;
+}
+
 /* private mood history on the Me tab */
 const MOOD_DAYS = 14;
 function moodStripHTML() {
@@ -317,6 +339,7 @@ function homeHTML() {
     <p class="log">${esc(logLine)}</p>
   </div>
   ${goalHTML()}
+  ${interviewHTML()}
   <div class="block joke">
     <h2>Share my day</h2>
     <p class="hint">Turn today into a meme card for TikTok or Instagram.</p>

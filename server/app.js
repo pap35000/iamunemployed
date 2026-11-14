@@ -297,7 +297,8 @@ async function loadMe(ctx, userId) {
       (SELECT post_id FROM escapes WHERE user_id = ?1 ORDER BY id DESC LIMIT 1)`).bind(userId),
     db.prepare("SELECT COALESCE(SUM(n), 0) AS n FROM moves WHERE user_id = ?1 AND day >= ?2 AND kind = 'applied'").bind(userId, week),
     db.prepare('SELECT day, mood FROM checkins WHERE user_id = ?1 AND day >= ?2 AND day <= ?3 ORDER BY day')
-      .bind(userId, addDays(today, 1 - MOOD_DAYS), today)
+      .bind(userId, addDays(today, 1 - MOOD_DAYS), today),
+    db.prepare("SELECT MAX(day) AS day FROM moves WHERE user_id = ?1 AND kind = 'interview' AND day <= ?2").bind(userId, today)
   ]);
   const rows = i => r[i].results;
   const u = rows(0)[0];
@@ -333,6 +334,7 @@ async function loadMe(ctx, userId) {
     weekApplied: rows(11)[0].n,
     // Private to the member: never part of a board, post or other member's response.
     moodDays: rows(12).filter(c => MOODS.includes(c.mood)).map(c => ({ day: c.day, mood: c.mood })),
+    lastInterview: rows(13)[0] ? rows(13)[0].day || null : null,
     today: { date: today, mood: rows(4)[0] ? rows(4)[0].mood : null, moves: todayMoves },
     totals,
     claimed: game.claimed,

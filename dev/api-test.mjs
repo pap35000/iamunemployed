@@ -216,6 +216,22 @@ await test('a weekly application goal is saved, checked and counted', async () =
   assert.equal((await alice.patch('/me', { weekGoal: 0 })).data.me.weekGoal, 0, 'the goal can be cleared');
 });
 
+await test('the last interview day is tracked for the member', async () => {
+  const m = new Member();
+  await join(m, 'Interviewee_4', { publicBoard: false, startDate: ymd(START - 60 * DAY) });
+  assert.equal((await m.get('/me')).data.me.lastInterview, null, 'no interview logged yet');
+  m.now = START - 12 * DAY;
+  await m.post('/moves', { kind: 'interview' });
+  m.now = START - 5 * DAY;
+  await m.post('/moves', { kind: 'interview' });
+  m.now = START - 2 * DAY;
+  await m.post('/moves', { kind: 'applied' });
+  m.now = START;
+  assert.equal((await m.get('/me')).data.me.lastInterview, ymd(START - 5 * DAY), 'the latest interview, not other moves');
+  assert.equal((await m.post('/moves', { kind: 'interview' })).data.me.lastInterview, TODAY, 'updates right after logging one');
+  assert.equal((await alice.get('/me')).data.me.lastInterview, null, 'other members’ interviews don’t count');
+});
+
 await test('moves per day are capped', async () => {
   const m = new Member();
   await join(m, 'Capped_9', { publicBoard: false });
