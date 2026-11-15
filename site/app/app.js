@@ -286,6 +286,42 @@ function interviewHTML() {
   </div>`;
 }
 
+/* streak milestones: a small celebration when a check-in or move reaches one */
+const STREAK_MILESTONES = [7, 14, 30, 60, 100, 200, 365];
+const STREAK_LINES = {
+  7: ['A full week of showing up.', 'Seven days straight. Longer than most recruiters take to reply. Allegedly.'],
+  14: ['Two weeks in a row. That’s a habit now.', 'Two weeks straight. Some interview processes are still on round one.'],
+  30: ['A whole month of showing up for yourself.', 'Thirty days straight. A month-long streak, zero onboarding paperwork.'],
+  60: ['Two months of steady effort. That takes real grit.', 'Sixty days straight. Your consistency has outlasted three “quick follow-ups”.'],
+  100: ['One hundred days in a row. Truly remarkable.', 'A hundred days straight. The ATS would be impressed, if it read anything.'],
+  200: ['Two hundred days of showing up. Wow.', 'Two hundred days straight. Some job ads have been “urgently hiring” for less.'],
+  365: ['A full year, every single day. Thank you for staying with it.', 'A whole year straight. Somewhere, a hiring committee is still scheduling a call about you.']
+};
+const nextMilestone = n => STREAK_MILESTONES.find(m => m > n) || 0;
+function streakNextHTML() {
+  const m = nextMilestone(S.streak || 0);
+  if (!S.streak || !m) return '';
+  const left = m - S.streak;
+  return `<p class="hint streak-next">${left} ${left === 1 ? 'day' : 'days'} to your ${m}-day streak milestone. Check in or log a move each day to keep it going.</p>`;
+}
+// Opens the celebration sheet when the streak went from below a milestone to it or past it.
+// The usual toast goes inside the sheet instead, so the two don't overlap.
+function celebrateStreak(before, msg) {
+  const n = S.streak || 0;
+  const hit = STREAK_MILESTONES.filter(m => before < m && n >= m).pop();
+  if (!hit) return false;
+  const [calm, fun] = STREAK_LINES[hit];
+  const next = nextMilestone(n);
+  $('#streak-h').textContent = `${hit}-day streak!`;
+  $('#streak-n').textContent = pad(n, String(n).length > 3 ? 4 : 3);
+  $('#streak-msg').textContent = S.calm ? calm : fun;
+  $('#streak-also').textContent = msg || '';
+  $('#streak-also').hidden = !msg;
+  $('#streak-next').textContent = next ? `Next milestone: ${next} days.` : 'That’s the top milestone. Everything from here is pure legend.';
+  openOv('ov-streak');
+  return true;
+}
+
 /* private mood history on the Me tab */
 const MOOD_DAYS = 14;
 function moodStripHTML() {
@@ -330,6 +366,7 @@ function homeHTML() {
     <div><b>${S.weekMoves}</b><span>moves this week</span></div>
     <div class="joke"><b>#${S.grindRank}</b><span>Grind of the Week</span></div>
   </div>
+  ${streakNextHTML()}
   <div class="block">
     <h2>Today’s check-in</h2>
     <p class="hint">How are you feeling?</p>
@@ -946,20 +983,25 @@ const A = {
   mood(el) {
     const k = el.dataset.mood;
     return queued(async () => {
+      const streakBefore = S.streak || 0;
       const names = await withBadges(async () => setMe((await api('/checkin', 'POST', {mood: k})).me));
-      toast(MOOD_TOAST[k] + unlockedMsg(names)); render();
+      const msg = MOOD_TOAST[k] + unlockedMsg(names);
+      render();
+      if (!celebrateStreak(streakBefore, msg)) toast(msg);
     });
   },
   move(el) {
     const k = el.dataset.move;
     return queued(async () => {
-      const before = S.grindRank, appliedBefore = S.weekApplied || 0;
+      const before = S.grindRank, appliedBefore = S.weekApplied || 0, streakBefore = S.streak || 0;
       const names = await withBadges(async () => setMe((await api('/moves', 'POST', {kind: k})).me));
       let msg = k === 'ghosted' ? `Ghosting logged. Ghost Whisperer ${Math.min(S.totals.ghosted, 10)}/10.` : MOVE_TOAST[k];
       if (S.weekGoal && appliedBefore < S.weekGoal && S.weekApplied >= S.weekGoal) msg += ' Weekly goal reached!';
       if (!S.calm && S.grindRank < before) msg += ` You’re now #${S.grindRank} on Grind of the Week.`;
       delete DATA.boards.grind;
-      toast(msg + unlockedMsg(names)); render();
+      msg += unlockedMsg(names);
+      render();
+      if (!celebrateStreak(streakBefore, msg)) toast(msg);
     });
   },
   'goal-edit'() { UI.goalEdit = true; render(); const i = $('#goal-n'); if (i) { i.focus({preventScroll: true}); i.select(); } },

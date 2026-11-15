@@ -53,6 +53,18 @@
       </div>
     </div>
 
+    <!-- streak milestone -->
+    <div class="overlay" id="ov-streak" hidden>
+      <div class="sheet gx" role="dialog" aria-modal="true" aria-labelledby="streak-h" aria-describedby="streak-msg streak-next streak-also">
+        <div class="sheet-head"><h2 id="streak-h">Streak milestone!</h2><button class="x" type="button" data-action="close" aria-label="Close">×</button></div>
+        <div class="streak-cel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.8c.5 2.8 4.4 4.6 4.4 9.2a5 5 0 0 1-10 0c0-1.9.9-3.3 2-4.2.2 1.7 1.1 2.7 2.3 2.9-.3-2.6.1-5.4 1.3-7.9z"/></svg><span class="led big" id="streak-n" aria-hidden="true">007</span><span class="tk-sub">days in a row</span></div>
+        <p class="hint" id="streak-msg"></p>
+        <p class="hint" id="streak-next"></p>
+        <p class="hint" id="streak-also" hidden></p>
+        <button class="btn ticket wide" type="button" data-action="close">Keep going</button>
+      </div>
+    </div>
+
     <!-- compose sheet -->
     <div class="overlay" id="ov-compose" hidden>
       <form class="sheet gx" id="compose-form" role="dialog" aria-modal="true" aria-labelledby="compose-h" novalidate>

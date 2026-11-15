@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-15: Streak milestone celebration. Members get a celebration sheet when their check-in streak reaches 7, 14, 30, 60, 100, 200 or 365 days, and the Queue tab shows how many days are left to the next milestone.
 - 2026-11-14: Days since last interview. Members can see on the Queue tab how many days have passed since they last logged an interview, with the date and a gentle nudge.
 - 2026-11-13: Mood history strip. Members can see their own check-in moods for the last 14 days on the Me tab, privately, with a count of how many days they checked in.
 - 2026-11-12: Weekly application goal. Members can set how many applications they want to send this week on the Queue tab, watch a progress bar fill as they log applications, and get a toast when they reach it.
@@ -12,7 +13,7 @@ One new member-visible feature ships at a time. Newest first.
 
 - Weekly recap card on Monday: last week's moves, moods and goal result.
 - Filter the Feed to show only my own posts.
-- Streak milestone celebration at 7, 30 and 100 days.
+- Remember the best streak ever and show it on the Me tab.
 - Goal streak: weeks in a row with the application goal met, plus a badge.
 - Keyboard shortcuts for switching tabs on desktop.
 - Guided empty state for the Feed when a category has no posts yet.
