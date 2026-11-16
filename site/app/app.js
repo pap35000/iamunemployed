@@ -322,6 +322,29 @@ function celebrateStreak(before, msg) {
   return true;
 }
 
+/* current and best streak on the Me tab, private to the member */
+function streakBestHTML() {
+  const now = S.streak || 0, best = Math.max(S.bestStreak || 0, now);
+  const dayWord = n => (n === 1 ? 'day' : 'days');
+  let hint, joke = '';
+  if (!best) hint = 'Check in or log a move today to start your first streak.';
+  else if (now === best) {
+    hint = now === 1 ? 'Day one of your best streak so far. Every day from here sets a new record.' : 'You’re on your best streak ever right now. Every day from here sets a new record.';
+    joke = 'More consistent than any recruiter’s follow-up schedule.';
+  } else {
+    const when = S.bestStreakDay ? ', reached on ' + parseYmd(S.bestStreakDay).toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+    const left = best - now + 1;
+    hint = `Your best is ${best} ${dayWord(best)}${when}. ${left} more ${dayWord(left)} in a row ${now ? 'and you beat it' : 'beats it'}.`;
+    joke = 'Unlike job offers, this record can’t be rescinded.';
+  }
+  return `<h3 id="streaks-h">Streaks</h3>
+  <div class="stats" role="group" aria-labelledby="streaks-h">
+    <div><b>${fmt(now)}</b><span>${dayWord(now)} streak now</span></div>
+    <div><b>${fmt(best)}</b><span>best streak ever</span></div>
+  </div>
+  <p class="hint streak-best">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>`;
+}
+
 /* private mood history on the Me tab */
 const MOOD_DAYS = 14;
 function moodStripHTML() {
@@ -560,6 +583,7 @@ function meHTML() {
       <div class="pills">${S.escaped ? '' : `<span class="pill joke">${titleFor(d)}</span>`}${S.escapeNo ? '<span class="pill esc">Escapee</span>' : ''}${S.escaped && S.mentor ? '<span class="pill">Mentor</span>' : ''}${S.admin ? '<span class="pill">Admin</span>' : ''}</div></div></div>
   <h3>Your Wrapped so far</h3>
   <div class="wrapped">${tiles.map(([n, l]) => `<div><b>${fmt(n)}</b><span>${l}</span></div>`).join('')}</div>
+  ${streakBestHTML()}
   ${moodStripHTML()}
   <h3>Badges</h3>
   <div class="badges">${badges}</div>

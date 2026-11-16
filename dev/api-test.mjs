@@ -92,7 +92,7 @@ await test('without a database: a clear 503', async () => {
 await test('the first request creates the tables', async () => {
   const r = await new Member().get('/health');
   assert.equal(r.status, 200);
-  assert.deepEqual(r.data, { ok: true, schema: 2 });
+  assert.deepEqual(r.data, { ok: true, schema: 3 });
   const tables = db.query("SELECT name AS n FROM sqlite_master WHERE type = 'table'").map(t => t.n);
   for (const t of ['meta', 'users', 'sessions', 'checkins', 'moves', 'escapes', 'posts', 'reactions', 'reports', 'votes', 'rate_limits']) {
     assert.ok(tables.includes(t), t);
@@ -251,6 +251,46 @@ await test('the streak grows day by day and resets after a missed day', async ()
   m.now = START + 2 * DAY;
   assert.equal((await m.get('/me')).data.me.streak, 0, 'a missed day shows 0');
   assert.equal((await m.post('/checkin', { mood: 'okay' })).data.me.streak, 1);
+});
+
+await test('the best streak ever is remembered after the streak resets', async () => {
+  const m = new Member();
+  await join(m, 'BestStreaky', { publicBoard: false });
+  let me = (await m.get('/me')).data.me;
+  assert.equal(me.bestStreak, 0);
+  assert.equal(me.bestStreakDay, null);
+  for (let i = 3; i >= 1; i--) {
+    m.now = START - i * DAY;
+    me = (await m.post('/checkin', { mood: 'okay' })).data.me;
+  }
+  assert.equal(me.streak, 3);
+  assert.equal(me.bestStreak, 3);
+  assert.equal(me.bestStreakDay, ymd(START - DAY));
+  me = (await m.post('/moves', { kind: 'applied' })).data.me;
+  assert.equal(me.bestStreak, 3, 'a second action on the same day changes nothing');
+  m.now = START + DAY;
+  me = (await m.post('/checkin', { mood: 'low' })).data.me;
+  assert.equal(me.streak, 1, 'the streak reset after a missed day');
+  assert.equal(me.bestStreak, 3, 'the best stays');
+  assert.equal(me.bestStreakDay, ymd(START - DAY));
+  m.now = START + 2 * DAY;
+  me = (await m.post('/moves', { kind: 'course' })).data.me;
+  assert.equal(me.bestStreak, 3, 'a shorter streak does not replace it');
+  const ex = (await m.get('/me/export')).data;
+  assert.equal(ex.profile.bestStreak, 3, 'part of the data export');
+});
+
+await test('the best-streak step fills in existing members from their last streak', async () => {
+  const id = db.query("SELECT id FROM users WHERE nick_key = 'streaky'")[0].id;
+  db.query('ALTER TABLE users DROP COLUMN best_streak_day');
+  db.query('ALTER TABLE users DROP COLUMN best_streak');
+  db.query("UPDATE meta SET value = '2' WHERE key = 'schema'");
+  forgetSchema();
+  assert.deepEqual((await new Member().get('/health')).data, { ok: true, schema: 3 });
+  const row = db.query('SELECT streak, last_checkin, best_streak, best_streak_day FROM users WHERE id = ?1', id)[0];
+  assert.equal(row.best_streak, row.streak);
+  assert.equal(row.best_streak_day, row.last_checkin);
+  assert.equal(count('SELECT COUNT(*) AS n FROM users WHERE best_streak < streak'), 0);
 });
 
 await test('more members join; ADMIN_NICKS makes an admin', async () => {

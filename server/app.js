@@ -329,6 +329,8 @@ async function loadMe(ctx, userId) {
     escapeDate: esc ? esc.day : null,
     streak: liveStreak(u, today),
     lastCheckin: u.last_checkin,
+    bestStreak: u.best_streak || 0,
+    bestStreakDay: u.best_streak_day || null,
     weekMoves: rows(3)[0].n,
     weekGoal: u.week_goal || 0,
     weekApplied: rows(11)[0].n,
@@ -449,6 +451,8 @@ async function exportMe(ctx) {
       cameBackAfterEscaping: !!user.sequel,
       streak: user.streak,
       lastCheckin: user.last_checkin,
+      bestStreak: user.best_streak || 0,
+      bestStreakDay: user.best_streak_day || null,
       joined: iso(user.created_at),
       game: readGame(user.game)
     },
@@ -495,12 +499,16 @@ async function deleteMe(ctx) {
 
 /* Check-ins and moves */
 
-// Any check-in or move keeps the streak going.
+// Any check-in or move keeps the streak going. The best streak ever moves up with it,
+// remembering the day it was reached. (SET reads the old values of every column.)
+const NEXT_STREAK = 'CASE WHEN last_checkin >= ?2 THEN streak WHEN last_checkin = ?3 THEN streak + 1 ELSE 1 END';
 function touchStreak(db, userId, today) {
   return db.prepare(
     `UPDATE users SET
-       streak = CASE WHEN last_checkin >= ?2 THEN streak WHEN last_checkin = ?3 THEN streak + 1 ELSE 1 END,
-       last_checkin = CASE WHEN last_checkin >= ?2 THEN last_checkin ELSE ?2 END
+       streak = ${NEXT_STREAK},
+       last_checkin = CASE WHEN last_checkin >= ?2 THEN last_checkin ELSE ?2 END,
+       best_streak_day = CASE WHEN ${NEXT_STREAK} > best_streak THEN ?2 ELSE best_streak_day END,
+       best_streak = MAX(best_streak, ${NEXT_STREAK})
      WHERE id = ?1`
   ).bind(userId, today, addDays(today, -1));
 }

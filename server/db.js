@@ -126,6 +126,14 @@ const MIGRATIONS = [
   // Step 2: a weekly application goal each member can set for themselves (0 = no goal).
   [
     'ALTER TABLE users ADD COLUMN week_goal INTEGER NOT NULL DEFAULT 0'
+  ],
+
+  // Step 3: each member's best streak ever and the day it was reached, private to them.
+  // Existing members start from the streak they last reached.
+  [
+    'ALTER TABLE users ADD COLUMN best_streak INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE users ADD COLUMN best_streak_day TEXT',
+    'UPDATE users SET best_streak = streak, best_streak_day = last_checkin WHERE streak > 0 AND last_checkin IS NOT NULL'
   ]
 ];
 
