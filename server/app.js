@@ -298,7 +298,9 @@ async function loadMe(ctx, userId) {
     db.prepare("SELECT COALESCE(SUM(n), 0) AS n FROM moves WHERE user_id = ?1 AND day >= ?2 AND kind = 'applied'").bind(userId, week),
     db.prepare('SELECT day, mood FROM checkins WHERE user_id = ?1 AND day >= ?2 AND day <= ?3 ORDER BY day')
       .bind(userId, addDays(today, 1 - MOOD_DAYS), today),
-    db.prepare("SELECT MAX(day) AS day FROM moves WHERE user_id = ?1 AND kind = 'interview' AND day <= ?2").bind(userId, today)
+    db.prepare("SELECT MAX(day) AS day FROM moves WHERE user_id = ?1 AND kind = 'interview' AND day <= ?2").bind(userId, today),
+    db.prepare('SELECT day, kind, n FROM moves WHERE user_id = ?1 AND day >= ?2 AND day <= ?3 ORDER BY day, kind')
+      .bind(userId, addDays(today, 1 - MOOD_DAYS), today)
   ]);
   const rows = i => r[i].results;
   const u = rows(0)[0];
@@ -336,6 +338,8 @@ async function loadMe(ctx, userId) {
     weekApplied: rows(11)[0].n,
     // Private to the member: never part of a board, post or other member's response.
     moodDays: rows(12).filter(c => MOODS.includes(c.mood)).map(c => ({ day: c.day, mood: c.mood })),
+    // Private too: the moves behind each day of the mood history.
+    moveDays: rows(14).filter(m => MOVES.includes(m.kind) && m.n > 0).map(m => ({ day: m.day, kind: m.kind, n: m.n })),
     lastInterview: rows(13)[0] ? rows(13)[0].day || null : null,
     today: { date: today, mood: rows(4)[0] ? rows(4)[0].mood : null, moves: todayMoves },
     totals,

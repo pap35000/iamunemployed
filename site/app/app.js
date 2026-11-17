@@ -123,7 +123,7 @@ async function passwordKey(nick, password) {
 /* state */
 const TAB_KEY = 'iamunemployed-tab';
 let S = null; // the signed-in member, as the server sees them
-const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null};
+const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null};
 let DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
 let meAt = 0;
 
@@ -138,7 +138,7 @@ function setMe(me) {
 function forget() {
   S = null;
   DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
-  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null});
+  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null});
 }
 function loadTab() { try { const t = localStorage.getItem(TAB_KEY); if (t) UI.tab = t; } catch (e) { /* storage unavailable */ } }
 function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { /* storage unavailable */ } }
@@ -345,24 +345,44 @@ function streakBestHTML() {
   <p class="hint streak-best">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>`;
 }
 
-/* private mood history on the Me tab */
+/* private mood history on the Me tab; tap a day to see its moves */
 const MOOD_DAYS = 14;
+const longDay = day => parseYmd(day).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
+function moodDayHTML(day, mood) {
+  const moves = (S.moveDays || []).filter(m => m.day === day);
+  const counts = Object.fromEntries(moves.map(m => [m.kind, m.n]));
+  const list = MOVES.filter(([k]) => counts[k]).map(([k, l]) => l + (counts[k] > 1 ? ' ×' + counts[k] : ''));
+  const name = day === S.today.date ? 'Today' : longDay(day);
+  const moodLine = mood ? `Mood: ${mood[1]} ${mood[2]}` : 'No check-in';
+  const tough = counts.rejected || counts.ghosted;
+  const note = list.length
+    ? (tough ? ' <span class="joke">Rejections and ghostings still count. Showing up is the hard part.</span>' : '')
+    : ' Rest days count too.';
+  return `<div class="mood-day">
+    <p><b>${esc(name)}</b> · ${esc(moodLine)}</p>
+    <p class="hint">${list.length ? 'Moves: ' + esc(list.join(' · ')) + '.' : 'No moves logged.'}${note}</p>
+  </div>`;
+}
 function moodStripHTML() {
   const end = S.today.date, start = addDays(end, 1 - MOOD_DAYS);
   const byDay = new Map((S.moodDays || []).map(c => [c.day, c.mood]));
+  const moved = new Set((S.moveDays || []).map(m => m.day));
+  if (UI.moodDay && (UI.moodDay < start || UI.moodDay > end)) UI.moodDay = null;
   const cells = [];
   for (let i = 0; i < MOOD_DAYS; i++) {
     const day = addDays(start, i), mood = MOODS.find(([k]) => k === byDay.get(day));
-    const date = parseYmd(day), long = date.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
-    const label = `${i === MOOD_DAYS - 1 ? 'Today' : long}: ${mood ? mood[2] : 'no check-in'}`;
-    cells.push(`<li class="${mood ? 'on' : ''}${day === end ? ' today' : ''}" title="${esc(label)}"><span class="sr">${esc(label)}</span><span class="e" aria-hidden="true">${mood ? mood[1] : '·'}</span><span class="d" aria-hidden="true">${esc(date.toLocaleDateString('en-GB', {weekday: 'narrow'}))}</span></li>`);
+    const date = parseYmd(day);
+    const label = `${day === end ? 'Today' : longDay(day)}: ${mood ? mood[2] : 'no check-in'}${moved.has(day) ? ', moves logged' : ''}`;
+    const on = UI.moodDay === day;
+    cells.push(`<li class="${mood ? 'on' : ''}${day === end ? ' today' : ''}${moved.has(day) ? ' moved' : ''}"><button type="button" data-action="mood-day" data-day="${day}" data-k="mood-day-${day}" aria-pressed="${on}" aria-controls="mood-day-box" title="${esc(label)}"><span class="sr">${esc(label)}</span><span class="e" aria-hidden="true">${mood ? mood[1] : '·'}</span><span class="d" aria-hidden="true">${esc(date.toLocaleDateString('en-GB', {weekday: 'narrow'}))}</span></button></li>`);
   }
   const n = byDay.size;
   const hint = n
-    ? `You checked in on ${n} of the last ${MOOD_DAYS} days. Only you can see this, which is more attention than most applications get.`
-    : 'Check in on the Queue tab and your moods will line up here. Only you can see this.';
+    ? `You checked in on ${n} of the last ${MOOD_DAYS} days. Tap a day to see what you logged. Only you can see this, which is more attention than most applications get.`
+    : 'Check in on the Queue tab and your moods will line up here. Tap a day to see its moves. Only you can see this.';
+  const sel = UI.moodDay ? moodDayHTML(UI.moodDay, MOODS.find(([k]) => k === byDay.get(UI.moodDay))) : '';
   return `<h3 id="mood-h">Your last ${MOOD_DAYS} days</h3>
-  <div class="block mood-strip"><ol aria-labelledby="mood-h">${cells.join('')}</ol><p class="hint">${esc(hint)}</p></div>`;
+  <div class="block mood-strip"><ol aria-labelledby="mood-h">${cells.join('')}</ol><div id="mood-day-box" aria-live="polite">${sel}</div><p class="hint">${esc(hint)}</p></div>`;
 }
 
 /* views */
@@ -1028,6 +1048,7 @@ const A = {
       if (!celebrateStreak(streakBefore, msg)) toast(msg);
     });
   },
+  'mood-day'(el) { const d = el.dataset.day; UI.moodDay = UI.moodDay === d ? null : d; render(); },
   'goal-edit'() { UI.goalEdit = true; render(); const i = $('#goal-n'); if (i) { i.focus({preventScroll: true}); i.select(); } },
   'goal-cancel'() { UI.goalEdit = false; render(); focusKey('goal-edit'); },
   'goal-clear'() { return saveGoal(0, 'Goal removed. Set a new one whenever you like.'); },

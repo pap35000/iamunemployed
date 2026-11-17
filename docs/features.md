@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-17: Mood strip day details. Members can tap any day in their private 14-day mood strip on the Me tab to see that day's mood and the moves they logged, with a small dot marking days that had moves.
 - 2026-11-16: Best streak ever. Members can see their current streak next to their best streak ever on the Me tab, with the day they reached it and how many days in a row it takes to beat it.
 - 2026-11-15: Streak milestone celebration. Members get a celebration sheet when their check-in streak reaches 7, 14, 30, 60, 100, 200 or 365 days, and the Queue tab shows how many days are left to the next milestone.
 - 2026-11-14: Days since last interview. Members can see on the Queue tab how many days have passed since they last logged an interview, with the date and a gentle nudge.
@@ -18,6 +19,6 @@ One new member-visible feature ships at a time. Newest first.
 - Keyboard shortcuts for switching tabs on desktop.
 - Guided empty state for the Feed when a category has no posts yet.
 - Share card for reaching the weekly goal (hidden in calm mode).
-- Tap a day in the mood strip to see that day's logged moves.
+- Weekly move totals under the mood strip, week over week.
 - Show the longest gap between interviews on the Me tab stats.
 - A gentle toast the day a member beats their best streak.

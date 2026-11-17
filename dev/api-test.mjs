@@ -191,6 +191,27 @@ await test('the mood history holds only the last 14 days, oldest first', async (
   })).data.me.moodDays, [], 'a new member starts with an empty history');
 });
 
+await test('the move history holds the last 14 days of moves, privately', async () => {
+  const m = new Member();
+  await join(m, 'Mover_9', { publicBoard: false, startDate: ymd(START - 30 * DAY) });
+  for (const [ago, kind] of [[15, 'applied'], [13, 'interview'], [2, 'applied'], [2, 'applied'], [2, 'ghosted'], [0, 'course']]) {
+    m.now = START - ago * DAY;
+    assert.equal((await m.post('/moves', { kind })).status, 200);
+  }
+  m.now = START;
+  const me = (await m.get('/me')).data.me;
+  assert.deepEqual(me.moveDays, [
+    { day: ymd(START - 13 * DAY), kind: 'interview', n: 1 },
+    { day: ymd(START - 2 * DAY), kind: 'applied', n: 2 },
+    { day: ymd(START - 2 * DAY), kind: 'ghosted', n: 1 },
+    { day: TODAY, kind: 'course', n: 1 }
+  ], 'oldest first, older than 14 days left out, counts added up');
+  const other = new Member();
+  await join(other, 'Peeker_9', { publicBoard: false });
+  assert.ok(!JSON.stringify((await other.get('/boards/grind')).data).includes('moveDays'), 'boards never carry the move history');
+  assert.deepEqual((await other.get('/me')).data.me.moveDays, [], 'another member sees only their own (empty) history');
+});
+
 await test('moves add up for today, this week and in total', async () => {
   for (let i = 0; i < 3; i++) await alice.post('/moves', { kind: 'applied' });
   const me = (await alice.post('/moves', { kind: 'rejected' })).data.me;
