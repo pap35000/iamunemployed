@@ -521,22 +521,28 @@ function postHTML(p) {
     <div class="reacts">${(REACTS[p.kind] || REACTS.post).map(r => reactHTML(p, r)).join('')}<span class="tools">${tools}</span></div>
   </article>`;
 }
+// 'Mine' is not a category: it asks the API for the member's own posts, anonymous ones too.
+const MINE = 'Mine';
+const feedQuery = cat => cat === MINE ? {mine: '1'} : cat === 'All' ? {} : {cat};
 function feedHTML() {
   if (S.calm && UI.cat === 'Memes') UI.cat = 'All';
-  const cats = ['All', ...CATS].filter(c => !(S.calm && c === 'Memes'));
+  const cats = ['All', MINE, ...CATS].filter(c => !(S.calm && c === 'Memes'));
   const chips = cats.map(c => `<button class="chip" data-action="cat" data-cat="${esc(c)}" data-k="cat-${esc(c)}" aria-pressed="${UI.cat === c}">${esc(c)}</button>`).join('');
   const f = DATA.feed;
   let body;
   if (!f || f.cat !== UI.cat || !f.posts) body = f && f.cat === UI.cat && f.error ? errorBox(f.error, 'feed-retry') : loadingLine;
   else {
     const posts = f.posts.filter(p => !(S.calm && p.cat === 'Memes'));
+    const mine = UI.cat === MINE;
     body = posts.length
-      ? posts.map(postHTML).join('')
-      : emptyBox(UI.cat === 'All' ? 'No posts yet. Be the first to share something with the queue.' : `Nothing in ${esc(UI.cat)} yet. Be the first to post.`);
+      ? (mine ? `<p class="hint">${posts.length}${f.more ? '+' : ''} ${posts.length === 1 && !f.more ? 'post' : 'posts'} from you. Anonymous ones are marked as yours only on your screen.</p>` : '') + posts.map(postHTML).join('')
+      : mine
+        ? `<div class="empty"><p class="hint">You haven’t posted yet. Everything you share, anonymous posts included, collects here so you can find it again.</p><button class="btn ghost small" data-action="open-compose" data-k="mine-compose">Write your first post</button></div>`
+        : emptyBox(UI.cat === 'All' ? 'No posts yet. Be the first to share something with the queue.' : `Nothing in ${esc(UI.cat)} yet. Be the first to post.`);
     if (f.more) body += `<button class="btn ghost small more" data-action="more-posts" data-k="more-posts"${f.loadingMore ? ' disabled' : ''}>${f.loadingMore ? 'Loading…' : 'Show older posts'}</button>`;
   }
   return `<button class="compose-btn" data-action="open-compose" data-k="open-compose"><span class="av ${avClass(S.nick)}" aria-hidden="true">${esc(initials(S.nick))}</span><span>Share something with the queue…</span></button>
-  <div class="chips scroll" role="group" aria-label="Categories">${chips}</div>
+  <div class="chips scroll" role="group" aria-label="Show posts">${chips}</div>
   ${body}`;
 }
 
@@ -690,7 +696,8 @@ function loadFeed(force) {
   const keep = f && f.cat === cat ? f : null;
   DATA.feed = {cat, posts: keep ? keep.posts : null, more: keep ? keep.more : false, loading: true, at: Date.now()};
   const data = DATA;
-  api('/posts' + (cat === 'All' ? '' : '?cat=' + encodeURIComponent(cat))).then(r => {
+  const q = new URLSearchParams(feedQuery(cat)).toString();
+  api('/posts' + (q ? '?' + q : '')).then(r => {
     if (data.feedSeq === seq) data.feed = {cat, posts: r.posts, more: r.more, at: Date.now()};
   }, err => {
     if (data.feedSeq === seq) data.feed = {cat, posts: data.feed.posts, more: data.feed.more, error: err.message, at: Date.now()};
@@ -816,7 +823,7 @@ function publishPost(p, msg) {
     $('#composer-text').value = '';
     $('#composer-anon').checked = false;
     closeOv($('#ov-compose'));
-    UI.cat = 'All';
+    if (UI.cat !== MINE) UI.cat = 'All';
     DATA.feed = null;
     go('feed');
     toast(msg);
@@ -1076,8 +1083,7 @@ const A = {
     const f = DATA.feed;
     if (!f || !f.posts || !f.more || f.loadingMore || !f.posts.length) return;
     f.loadingMore = true; render();
-    const q = new URLSearchParams({before: String(f.posts[f.posts.length - 1].id)});
-    if (f.cat !== 'All') q.set('cat', f.cat);
+    const q = new URLSearchParams({...feedQuery(f.cat), before: String(f.posts[f.posts.length - 1].id)});
     return api('/posts?' + q).then(r => { f.posts = f.posts.concat(r.posts.filter(p => !f.posts.some(x => x.id === p.id))); f.more = r.more; })
       .finally(() => { f.loadingMore = false; if (UI.tab === 'feed') render(); });
   },

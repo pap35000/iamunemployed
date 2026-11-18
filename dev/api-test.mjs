@@ -366,6 +366,19 @@ await test('posts, and anonymous posts never reveal the author', async () => {
   assert.deepEqual(wins.map(p => p.id), [alicePost.id]);
 });
 
+await test('the feed can show only my own posts, anonymous ones included', async () => {
+  const bobMine = (await bob.get('/posts?mine=1')).data.posts;
+  assert.deepEqual(bobMine.map(p => p.id), [bobPost.id], 'the anonymous post shows up for its author');
+  assert.equal(bobMine[0].mine, true);
+  assert.equal(bobMine[0].nick, null, 'still anonymous in the response');
+  assert.equal(bobMine[0].days, null);
+  assert.deepEqual((await alice.get('/posts?mine=1')).data.posts.map(p => p.id), [alicePost.id], 'nobody else’s posts');
+  assert.deepEqual((await alice.get('/posts?mine=0')).data.posts.map(p => p.id), [bobPost.id, alicePost.id], 'mine=0 is the whole feed');
+  assert.deepEqual((await alice.get('/posts?mine=1&cat=Rejections')).data.posts, [], 'combines with a category');
+  assert.equal((await carol.get('/posts?mine=1')).data.posts.length, 0);
+  assert.equal((await alice.get('/posts?mine=yes')).status, 400);
+});
+
 await test('posts are checked', async () => {
   assert.equal((await alice.post('/posts', { cat: 'Wins', text: '   ' })).data.error, 'empty');
   assert.equal((await alice.post('/posts', { cat: 'Nope', text: 'hi' })).status, 400);

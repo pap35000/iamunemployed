@@ -16,7 +16,7 @@
 //   POST   /api/escape                    landed a job     {role, wall}
 //   POST   /api/back                      back in the queue
 //   GET    /api/boards/legends|grind|escapees
-//   GET    /api/posts?cat=&before=        the feed, newest first
+//   GET    /api/posts?cat=&before=&mine=1 the feed, newest first (mine=1: only the member's own posts)
 //   POST   /api/posts                     new post         {cat, text, anon} or {kind: 'hiring', role}
 //   DELETE /api/posts/:id                 own post, or any post for admins
 //   POST   /api/posts/:id/react           {r, on}
@@ -651,10 +651,14 @@ async function listPosts(ctx) {
   const cat = url.searchParams.get('cat');
   const before = Number(url.searchParams.get('before')) || 0;
   if (cat && !CATEGORIES.includes(cat)) fail(400, 'bad_input', 'Unknown category.');
+  const onlyMine = url.searchParams.get('mine');
+  if (onlyMine !== null && onlyMine !== '0' && onlyMine !== '1') fail(400, 'bad_input', 'mine must be 0 or 1.');
   // Hidden posts and posts this member reported stay out of their feed.
   const values = [user.id];
   const where = ['p.hidden = 0', 'NOT EXISTS (SELECT 1 FROM reports x WHERE x.post_id = p.id AND x.user_id = ?1)'];
   if (cat) { values.push(cat); where.push(`p.cat = ?${values.length}`); }
+  // The member's own posts, anonymous ones too: the response marks them only as mine to their author.
+  if (onlyMine === '1') where.push('p.user_id = ?1');
   if (before > 0) { values.push(before); where.push(`p.id < ?${values.length}`); }
   const found = await db.prepare(
     `SELECT p.id, p.user_id, p.kind, p.cat, p.body, p.anon, p.days, p.escapee, p.created_at, u.nick

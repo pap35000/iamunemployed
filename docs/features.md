@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-18: My posts in the Feed. Members can tap the new Mine chip in the Feed to see only their own posts, anonymous ones included, with a count and a guided empty state if they have not posted yet.
 - 2026-11-17: Mood strip day details. Members can tap any day in their private 14-day mood strip on the Me tab to see that day's mood and the moves they logged, with a small dot marking days that had moves.
 - 2026-11-16: Best streak ever. Members can see their current streak next to their best streak ever on the Me tab, with the day they reached it and how many days in a row it takes to beat it.
 - 2026-11-15: Streak milestone celebration. Members get a celebration sheet when their check-in streak reaches 7, 14, 30, 60, 100, 200 or 365 days, and the Queue tab shows how many days are left to the next milestone.
@@ -14,7 +15,6 @@ One new member-visible feature ships at a time. Newest first.
 ## Ideas
 
 - Weekly recap card on Monday: last week's moves, moods and goal result.
-- Filter the Feed to show only my own posts.
 - Goal streak: weeks in a row with the application goal met, plus a badge.
 - Keyboard shortcuts for switching tabs on desktop.
 - Guided empty state for the Feed when a category has no posts yet.
@@ -22,3 +22,4 @@ One new member-visible feature ships at a time. Newest first.
 - Weekly move totals under the mood strip, week over week.
 - Show the longest gap between interviews on the Me tab stats.
 - A gentle toast the day a member beats their best streak.
+- Reaction totals on my own posts (hugs and cheers received) on the Me tab.
