@@ -402,6 +402,22 @@ await test('reactions toggle and count once per member', async () => {
   assert.deepEqual(p.my, { hug: true });
 });
 
+await test('the Me tab counts support received on own posts, not own reactions', async () => {
+  let me = (await bob.get('/me')).data.me;
+  assert.deepEqual(me.received, { same: 0, hug: 1, haha: 0, congrats: 0, useful: 0 }, 'Carol’s hug on the anonymous post counts');
+  assert.equal(me.postCount, count('SELECT COUNT(*) AS n FROM posts WHERE user_id = (SELECT id FROM users WHERE nick = ?1) AND hidden = 0', 'Bob_2'));
+  assert.ok(me.postCount >= 1);
+  await bob.post(`/posts/${bobPost.id}/react`, { r: 'same', on: true });
+  me = (await bob.get('/me')).data.me;
+  assert.equal(me.received.same, 0, 'reacting to your own post is not support received');
+  await bob.post(`/posts/${bobPost.id}/react`, { r: 'same', on: false });
+  me = (await alice.get('/me')).data.me;
+  assert.equal(me.received.hug, 0, 'reactions Alice gave are not hers');
+  const p = (await carol.get('/posts')).data.posts.find(x => x.id === bobPost.id);
+  assert.equal(p.received, undefined, 'nothing new leaks into the feed');
+  assert.equal(p.nick, null, 'the anonymous post stays anonymous');
+});
+
 await test('members delete only their own posts; admins can remove any', async () => {
   const extra = (await dave.post('/posts', { cat: 'Memes', text: 'delete me' })).data.post;
   assert.equal((await alice.del(`/posts/${extra.id}`)).status, 403);

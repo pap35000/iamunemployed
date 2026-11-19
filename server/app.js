@@ -50,6 +50,7 @@ const POST_MAX = 500;      // characters per post
 const FREE_CELL = 5;       // the bingo card's free square
 const GOAL_MAX = 50;       // highest weekly application goal
 const MOOD_DAYS = 14;      // days of mood history on the Me tab
+const REACTION_KINDS = [...new Set(Object.values(REACTIONS).flat())];
 
 const ROUTES = [
   ['GET', /^\/api\/health$/, health, false],
@@ -300,7 +301,11 @@ async function loadMe(ctx, userId) {
       .bind(userId, addDays(today, 1 - MOOD_DAYS), today),
     db.prepare("SELECT MAX(day) AS day FROM moves WHERE user_id = ?1 AND kind = 'interview' AND day <= ?2").bind(userId, today),
     db.prepare('SELECT day, kind, n FROM moves WHERE user_id = ?1 AND day >= ?2 AND day <= ?3 ORDER BY day, kind')
-      .bind(userId, addDays(today, 1 - MOOD_DAYS), today)
+      .bind(userId, addDays(today, 1 - MOOD_DAYS), today),
+    // Reactions other members left on this member's visible posts, anonymous ones included.
+    db.prepare(`SELECT r.kind, COUNT(*) AS n FROM reactions r JOIN posts p ON p.id = r.post_id
+      WHERE p.user_id = ?1 AND p.hidden = 0 AND r.user_id != ?1 GROUP BY r.kind`).bind(userId),
+    db.prepare('SELECT COUNT(*) AS n FROM posts WHERE user_id = ?1 AND hidden = 0').bind(userId)
   ]);
   const rows = i => r[i].results;
   const u = rows(0)[0];
@@ -313,6 +318,8 @@ async function loadMe(ctx, userId) {
   const esc = rows(5)[0] || null;
   const game = readGame(u.game);
   const queueDays = Math.max(0, diffDays(u.start_date, today));
+  const received = Object.fromEntries(REACTION_KINDS.map(k => [k, 0]));
+  for (const x of rows(15)) if (x.kind in received) received[x.kind] = x.n;
 
   return {
     nick: u.nick,
@@ -340,6 +347,9 @@ async function loadMe(ctx, userId) {
     moodDays: rows(12).filter(c => MOODS.includes(c.mood)).map(c => ({ day: c.day, mood: c.mood })),
     // Private too: the moves behind each day of the mood history.
     moveDays: rows(14).filter(m => MOVES.includes(m.kind) && m.n > 0).map(m => ({ day: m.day, kind: m.kind, n: m.n })),
+    // Private to the member: support received on their own posts, never who sent it.
+    received,
+    postCount: rows(16)[0].n,
     lastInterview: rows(13)[0] ? rows(13)[0].day || null : null,
     today: { date: today, mood: rows(4)[0] ? rows(4)[0].mood : null, moves: todayMoves },
     totals,

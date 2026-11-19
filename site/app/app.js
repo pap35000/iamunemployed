@@ -345,6 +345,36 @@ function streakBestHTML() {
   <p class="hint streak-best">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>`;
 }
 
+/* support other members left on the member's own posts, private to the member */
+const RECEIVED_ORDER = ['hug', 'same', 'congrats', 'useful', 'haha'];
+function supportHTML() {
+  const got = S.received || {}, posts = S.postCount || 0;
+  const total = RECEIVED_ORDER.reduce((n, k) => n + (got[k] || 0), 0);
+  const parts = RECEIVED_ORDER.filter(k => got[k]).map(k => `${REACT_LABEL[k]} ×${fmt(got[k])}`);
+  let hint, joke = '';
+  if (!posts) hint = 'Post in the Feed and the hugs and “same”s other members leave you will add up here.';
+  else if (!total) {
+    hint = 'No reactions yet. People read more than they react.';
+    joke = 'Like hiring managers, but kinder.';
+  }
+  else {
+    hint = `From other members: ${parts.join(' · ')}. Anonymous posts count too. Only you see this.`;
+    joke = 'More replies than your last ten applications combined.';
+  }
+  const btn = posts
+    ? '<button class="btn ghost small" data-action="my-posts" data-k="my-posts">See my posts</button>'
+    : '<button class="btn ghost small" data-action="open-compose" data-k="support-compose">Write a post</button>';
+  return `<h3 id="support-h">Support received</h3>
+  <div class="support" role="group" aria-labelledby="support-h">
+    <div class="stats">
+      <div><b>${fmt(total)}</b><span>${total === 1 ? 'reaction' : 'reactions'} from others</span></div>
+      <div><b>${fmt(posts)}</b><span>${posts === 1 ? 'post' : 'posts'} in the Feed</span></div>
+    </div>
+    <p class="hint">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>
+    ${btn}
+  </div>`;
+}
+
 /* private mood history on the Me tab; tap a day to see its moves */
 const MOOD_DAYS = 14;
 const longDay = day => parseYmd(day).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
@@ -610,6 +640,7 @@ function meHTML() {
   <h3>Your Wrapped so far</h3>
   <div class="wrapped">${tiles.map(([n, l]) => `<div><b>${fmt(n)}</b><span>${l}</span></div>`).join('')}</div>
   ${streakBestHTML()}
+  ${supportHTML()}
   ${moodStripHTML()}
   <h3>Badges</h3>
   <div class="badges">${badges}</div>
@@ -670,7 +701,7 @@ function load(tab) {
   if (tab === 'boards' && !S.calm) loadBoard(UI.board);
   else if (tab === 'feed') loadFeed();
   else if (tab === 'fun' && !S.calm) loadUnicorn();
-  else if (tab === 'home' && Date.now() - meAt > 60000) refreshMe();
+  else if ((tab === 'home' || tab === 'me') && Date.now() - meAt > 60000) refreshMe();
 }
 async function fetchInto(holder, key, path, stillShown) {
   const box = holder[key];
@@ -1078,6 +1109,7 @@ const A = {
   'board-retry'() { loadBoard(UI.board, true); render(); },
   'join-board'() { return saveSettings({publicBoard: true}, () => `You’re on the boards as ${S.nick}.`); },
   cat(el) { UI.cat = el.dataset.cat; render(); },
+  'my-posts'() { UI.cat = MINE; go('feed'); },
   'feed-retry'() { loadFeed(true); render(); },
   'more-posts'() {
     const f = DATA.feed;
