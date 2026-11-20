@@ -648,6 +648,7 @@ function meHTML() {
   <div class="settings">
     <label class="set" for="set-public"><span><b>Show me on public leaderboards</b><small>Always under your nickname. When off, only you see your row.</small></span><input type="checkbox" class="switch" role="switch" id="set-public" data-k="set-public"${S.publicBoard ? ' checked' : ''}></label>
     <label class="set" for="set-calm"><span><b>Not in the mood for jokes today</b><small>Hides memes, titles, leaderboards and games.</small></span><input type="checkbox" class="switch" role="switch" id="set-calm" data-k="set-calm"${S.calm ? ' checked' : ''}></label>
+    <button class="set kb-only" type="button" data-action="open-keys" data-k="open-keys" aria-keyshortcuts="?"><span><b>Keyboard shortcuts</b><small>Switch tabs with 1 to 5 and start a post with N. Press ? any time.</small></span></button>
     <div class="set"><span><b><label for="set-country">Country</label></b><small>Sets your helplines and resources.</small></span><select id="set-country" data-k="set-country">${countryOpts}</select></div>
   </div>
   <h3>Need to talk to someone?</h3>
@@ -1119,6 +1120,7 @@ const A = {
     return api('/posts?' + q).then(r => { f.posts = f.posts.concat(r.posts.filter(p => !f.posts.some(x => x.id === p.id))); f.more = r.more; })
       .finally(() => { f.loadingMore = false; if (UI.tab === 'feed') render(); });
   },
+  'open-keys'() { openOv('ov-keys'); },
   'open-compose'() { formError($('#compose-form'), ''); openOv('ov-compose'); },
   react(el) {
     const id = Number(el.dataset.post), r = el.dataset.r;
@@ -1267,6 +1269,27 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   const open = $$('.overlay').filter(o => !o.hidden);
   if (open.length) closeOv(open[open.length - 1]);
+});
+// Desktop shortcuts: 1-5 switch tabs, N starts a post, ? lists them. Off while typing or when a sheet is open.
+const KEY_TABS = ['home', 'boards', 'feed', 'fun', 'me'];
+document.addEventListener('keydown', e => {
+  if (!S || e.defaultPrevented || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t instanceof Element && t.closest('input, textarea, select, [contenteditable]')) return;
+  if ($$('.overlay, .screen').some(o => !o.hidden)) return;
+  if (/^[1-5]$/.test(e.key)) {
+    e.preventDefault();
+    const n = KEY_TABS[Number(e.key) - 1];
+    go(n);
+    const tab = $$('.tab').find(b => b.dataset.tab === n);
+    if (tab) tab.focus({preventScroll: true});
+  } else if (e.key === 'n' || e.key === 'N') {
+    e.preventDefault();
+    A['open-compose']();
+  } else if (e.key === '?') {
+    e.preventDefault();
+    openOv('ov-keys');
+  }
 });
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && S && Date.now() - meAt > 60000) refreshMe();

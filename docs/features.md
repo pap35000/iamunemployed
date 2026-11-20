@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-20: Keyboard shortcuts. Members on desktop can switch tabs with 1 to 5, start a post with N and press ? for a shortcuts sheet, also reachable from a new row in the Me tab settings.
 - 2026-11-19: Support received. Members can see on the Me tab how many hugs, sames and other reactions other members left on their own posts, anonymous ones included, and jump straight to their posts in the Feed.
 - 2026-11-18: My posts in the Feed. Members can tap the new Mine chip in the Feed to see only their own posts, anonymous ones included, with a count and a guided empty state if they have not posted yet.
 - 2026-11-17: Mood strip day details. Members can tap any day in their private 14-day mood strip on the Me tab to see that day's mood and the moves they logged, with a small dot marking days that had moves.
@@ -17,10 +18,10 @@ One new member-visible feature ships at a time. Newest first.
 
 - Weekly recap card on Monday: last week's moves, moods and goal result.
 - Goal streak: weeks in a row with the application goal met, plus a badge.
-- Keyboard shortcuts for switching tabs on desktop.
 - Guided empty state for the Feed when a category has no posts yet.
 - Share card for reaching the weekly goal (hidden in calm mode).
 - Weekly move totals under the mood strip, week over week.
 - Show the longest gap between interviews on the Me tab stats.
 - A gentle toast the day a member beats their best streak.
 - A gentle toast when one of my posts gets its first reaction.
+- More shortcuts: J and K to move between Feed posts, M to log a move.
