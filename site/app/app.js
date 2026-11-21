@@ -415,6 +415,33 @@ function moodStripHTML() {
   <div class="block mood-strip"><ol aria-labelledby="mood-h">${cells.join('')}</ol><div id="mood-day-box" aria-live="polite">${sel}</div><p class="hint">${esc(hint)}</p></div>`;
 }
 
+/* this week so far next to last week, from the private 14-day history */
+const WEEK_ROWS = [['applied', 'Applications'], ['interview', 'Interviews'], ['*', 'All moves'], ['checkin', 'Check-ins']];
+function weekCompareHTML() {
+  const today = S.today.date, dow = (parseYmd(today).getDay() + 6) % 7;
+  const thisMon = addDays(today, -dow), lastMon = addDays(thisMon, -7), lastSame = addDays(today, -7);
+  const sum = (from, to, kind) => kind === 'checkin'
+    ? (S.moodDays || []).filter(c => c.day >= from && c.day <= to).length
+    : (S.moveDays || []).filter(m => m.day >= from && m.day <= to && (kind === '*' || m.kind === kind)).reduce((n, m) => n + m.n, 0);
+  const rows = WEEK_ROWS.map(([k, l]) => `<tr><th scope="row">${l}</th><td>${fmt(sum(lastMon, addDays(thisMon, -1), k))}</td><td>${fmt(sum(thisMon, today, k))}</td></tr>`).join('');
+  const now = sum(thisMon, today, '*'), then = sum(lastMon, lastSame, '*');
+  const dayName = parseYmd(today).toLocaleDateString('en-GB', {weekday: 'long'});
+  const by = dow === 6 ? 'last week' : `by ${dayName} last week`;
+  let hint, joke = '';
+  if (!now && !then) hint = 'No moves logged in either week yet. Rest weeks happen. One small move on the Queue tab starts the count.';
+  else if (now > then) {
+    hint = `${fmt(now)} ${now === 1 ? 'move' : 'moves'} so far, ${fmt(now - then)} more than ${by}.`;
+    joke = 'More momentum than most hiring pipelines.';
+  }
+  else if (now === then) hint = `${fmt(now)} ${now === 1 ? 'move' : 'moves'} so far, the same pace as ${by}. Steady counts.`;
+  else hint = `${fmt(now)} ${now === 1 ? 'move' : 'moves'} so far, against ${fmt(then)} ${by}. Some weeks are slower, and that’s fine.`;
+  return `<h3 id="week-h">This week vs last week</h3>
+  <div class="block week-compare">
+    <table aria-labelledby="week-h"><thead><tr><td></td><th scope="col">Last week</th><th scope="col">This week so far</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="hint">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''} Weeks start on Monday. Only you see this.</p>
+  </div>`;
+}
+
 /* views */
 function homeHTML() {
   const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
@@ -642,6 +669,7 @@ function meHTML() {
   ${streakBestHTML()}
   ${supportHTML()}
   ${moodStripHTML()}
+  ${weekCompareHTML()}
   <h3>Badges</h3>
   <div class="badges">${badges}</div>
   <h3>Settings</h3>

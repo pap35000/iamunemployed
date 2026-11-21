@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-21: This week vs last week. Members can compare their applications, interviews, all moves and check-ins this week so far with last week on the Me tab, privately, with a fair note on how they are doing against the same day last week.
 - 2026-11-20: Keyboard shortcuts. Members on desktop can switch tabs with 1 to 5, start a post with N and press ? for a shortcuts sheet, also reachable from a new row in the Me tab settings.
 - 2026-11-19: Support received. Members can see on the Me tab how many hugs, sames and other reactions other members left on their own posts, anonymous ones included, and jump straight to their posts in the Feed.
 - 2026-11-18: My posts in the Feed. Members can tap the new Mine chip in the Feed to see only their own posts, anonymous ones included, with a count and a guided empty state if they have not posted yet.
@@ -20,7 +21,7 @@ One new member-visible feature ships at a time. Newest first.
 - Goal streak: weeks in a row with the application goal met, plus a badge.
 - Guided empty state for the Feed when a category has no posts yet.
 - Share card for reaching the weekly goal (hidden in calm mode).
-- Weekly move totals under the mood strip, week over week.
+- Tap a row in This week vs last week to see that move's day-by-day breakdown.
 - Show the longest gap between interviews on the Me tab stats.
 - A gentle toast the day a member beats their best streak.
 - A gentle toast when one of my posts gets its first reaction.
