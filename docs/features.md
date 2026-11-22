@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-22: New best streak. Members on a run level with their old record see a nudge on the Queue tab that today's check-in or move beats it, and get a "new personal best" note in the toast (or milestone sheet) the day they break it.
 - 2026-11-21: This week vs last week. Members can compare their applications, interviews, all moves and check-ins this week so far with last week on the Me tab, privately, with a fair note on how they are doing against the same day last week.
 - 2026-11-20: Keyboard shortcuts. Members on desktop can switch tabs with 1 to 5, start a post with N and press ? for a shortcuts sheet, also reachable from a new row in the Me tab settings.
 - 2026-11-19: Support received. Members can see on the Me tab how many hugs, sames and other reactions other members left on their own posts, anonymous ones included, and jump straight to their posts in the Feed.
@@ -23,6 +24,6 @@ One new member-visible feature ships at a time. Newest first.
 - Share card for reaching the weekly goal (hidden in calm mode).
 - Tap a row in This week vs last week to see that move's day-by-day breakdown.
 - Show the longest gap between interviews on the Me tab stats.
-- A gentle toast the day a member beats their best streak.
+- A small Record Breaker badge for beating a best streak of 7 days or more.
 - A gentle toast when one of my posts gets its first reaction.
 - More shortcuts: J and K to move between Feed posts, M to log a move.

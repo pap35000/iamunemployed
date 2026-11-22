@@ -301,6 +301,27 @@ await test('the best streak ever is remembered after the streak resets', async (
   assert.equal(ex.profile.bestStreak, 3, 'part of the data export');
 });
 
+await test('tying the best streak keeps the old record day, and beating it moves it', async () => {
+  // The app's "new personal best" note relies on this: a run that only ties the record
+  // leaves bestStreakDay on the earlier run, and the next day of the run replaces it.
+  const m = new Member();
+  await join(m, 'RecordBreaker', { publicBoard: false });
+  let me;
+  for (const d of [-9, -8]) { m.now = START + d * DAY; me = (await m.post('/checkin', { mood: 'okay' })).data.me; }
+  assert.equal(me.bestStreak, 2);
+  assert.equal(me.bestStreakDay, ymd(START - 8 * DAY));
+  for (const d of [-2, -1]) { m.now = START + d * DAY; me = (await m.post('/moves', { kind: 'course' })).data.me; }
+  assert.equal(me.streak, 2, 'a second run ties the record');
+  assert.equal(me.bestStreakDay, ymd(START - 8 * DAY), 'a tie keeps the old day');
+  m.now = START;
+  me = (await m.get('/me')).data.me;
+  assert.equal(me.lastCheckin, ymd(START - DAY), 'today is not counted yet');
+  me = (await m.post('/checkin', { mood: 'good' })).data.me;
+  assert.equal(me.streak, 3);
+  assert.equal(me.bestStreak, 3, 'the record falls');
+  assert.equal(me.bestStreakDay, ymd(START));
+});
+
 await test('the best-streak step fills in existing members from their last streak', async () => {
   const id = db.query("SELECT id FROM users WHERE nick_key = 'streaky'")[0].id;
   db.query('ALTER TABLE users DROP COLUMN best_streak_day');

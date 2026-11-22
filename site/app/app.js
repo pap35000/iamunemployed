@@ -322,6 +322,27 @@ function celebrateStreak(before, msg) {
   return true;
 }
 
+/* beating the best streak ever: a nudge on the Queue tab, and a note the day it happens */
+// The record is from an earlier run when the current streak is shorter, or level with it but
+// reached before yesterday (while a record run goes on, its day moves forward every day).
+const recordIsOld = (streak, best, bestDay, today) => best >= 2
+  && (streak < best || (streak === best && !!bestDay && bestDay < addDays(today, -1)));
+const streakSnap = () => ({streak: S.streak || 0, best: S.bestStreak || 0, day: S.bestStreakDay});
+function streakRecordHTML() {
+  const n = S.streak || 0, best = S.bestStreak || 0;
+  if (!n || n !== best || !recordIsOld(n, best, S.bestStreakDay, S.today.date)) return '';
+  const msg = S.lastCheckin === S.today.date
+    ? `You’ve matched your best streak of ${best} days. Show up tomorrow and it’s a new record.`
+    : `Check in or log a move today to beat your best streak of ${best} days.`;
+  return `<p class="hint streak-record">${esc(msg)}</p>`;
+}
+// The extra line for the toast (or milestone sheet) on the day the old record falls.
+function newRecordMsg(before) {
+  const n = S.streak || 0;
+  if (n <= before.best || !recordIsOld(before.streak, before.best, before.day, S.today.date)) return '';
+  return ` New personal best: ${n} days in a row, beating your old record of ${before.best}.${S.calm ? '' : ' No reference check required.'}`;
+}
+
 /* current and best streak on the Me tab, private to the member */
 function streakBestHTML() {
   const now = S.streak || 0, best = Math.max(S.bestStreak || 0, now);
@@ -466,6 +487,7 @@ function homeHTML() {
     <div><b>${S.weekMoves}</b><span>moves this week</span></div>
     <div class="joke"><b>#${S.grindRank}</b><span>Grind of the Week</span></div>
   </div>
+  ${streakRecordHTML()}
   ${streakNextHTML()}
   <div class="block">
     <h2>Today’s check-in</h2>
@@ -1094,9 +1116,9 @@ const A = {
   mood(el) {
     const k = el.dataset.mood;
     return queued(async () => {
-      const streakBefore = S.streak || 0;
+      const streakBefore = S.streak || 0, rec = streakSnap();
       const names = await withBadges(async () => setMe((await api('/checkin', 'POST', {mood: k})).me));
-      const msg = MOOD_TOAST[k] + unlockedMsg(names);
+      const msg = MOOD_TOAST[k] + newRecordMsg(rec) + unlockedMsg(names);
       render();
       if (!celebrateStreak(streakBefore, msg)) toast(msg);
     });
@@ -1104,11 +1126,12 @@ const A = {
   move(el) {
     const k = el.dataset.move;
     return queued(async () => {
-      const before = S.grindRank, appliedBefore = S.weekApplied || 0, streakBefore = S.streak || 0;
+      const before = S.grindRank, appliedBefore = S.weekApplied || 0, streakBefore = S.streak || 0, rec = streakSnap();
       const names = await withBadges(async () => setMe((await api('/moves', 'POST', {kind: k})).me));
       let msg = k === 'ghosted' ? `Ghosting logged. Ghost Whisperer ${Math.min(S.totals.ghosted, 10)}/10.` : MOVE_TOAST[k];
       if (S.weekGoal && appliedBefore < S.weekGoal && S.weekApplied >= S.weekGoal) msg += ' Weekly goal reached!';
       if (!S.calm && S.grindRank < before) msg += ` You’re now #${S.grindRank} on Grind of the Week.`;
+      msg += newRecordMsg(rec);
       delete DATA.boards.grind;
       msg += unlockedMsg(names);
       render();
