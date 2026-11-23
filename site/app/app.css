@@ -253,6 +253,9 @@ textarea{resize:vertical;min-height:120px;line-height:1.45}
 .mood-day{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
 .mood-day p{margin:0}
 .mood-day p+p{margin-top:4px}
+.recap{align-items:flex-start}
+.recap .stats{align-self:stretch}
+.recap .stats>div{background:var(--bg)}
 .week-compare table{width:100%;border-collapse:collapse;font-size:14px}
 .week-compare th,.week-compare td{padding:6px 4px;text-align:right;border-bottom:1px solid var(--line)}
 .week-compare th[scope="row"]{text-align:left;font-weight:600}

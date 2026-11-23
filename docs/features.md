@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-23: Last week in review. Members see a private recap card on the Queue tab with last week's applications, interviews, check-in days, most common mood, busiest day and how it compares with their weekly goal, and can hide it until next Monday.
 - 2026-11-22: New best streak. Members on a run level with their old record see a nudge on the Queue tab that today's check-in or move beats it, and get a "new personal best" note in the toast (or milestone sheet) the day they break it.
 - 2026-11-21: This week vs last week. Members can compare their applications, interviews, all moves and check-ins this week so far with last week on the Me tab, privately, with a fair note on how they are doing against the same day last week.
 - 2026-11-20: Keyboard shortcuts. Members on desktop can switch tabs with 1 to 5, start a post with N and press ? for a shortcuts sheet, also reachable from a new row in the Me tab settings.
@@ -18,7 +19,6 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Ideas
 
-- Weekly recap card on Monday: last week's moves, moods and goal result.
 - Goal streak: weeks in a row with the application goal met, plus a badge.
 - Guided empty state for the Feed when a category has no posts yet.
 - Share card for reaching the weekly goal (hidden in calm mode).
@@ -27,3 +27,4 @@ One new member-visible feature ships at a time. Newest first.
 - A small Record Breaker badge for beating a best streak of 7 days or more.
 - A gentle toast when one of my posts gets its first reaction.
 - More shortcuts: J and K to move between Feed posts, M to log a move.
+- Store each week's goal so the recap can show the goal that was set that week.

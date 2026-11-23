@@ -123,7 +123,7 @@ async function passwordKey(nick, password) {
 /* state */
 const TAB_KEY = 'iamunemployed-tab';
 let S = null; // the signed-in member, as the server sees them
-const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null};
+const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null, recapHidden: null};
 let DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
 let meAt = 0;
 
@@ -138,7 +138,7 @@ function setMe(me) {
 function forget() {
   S = null;
   DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
-  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null});
+  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null, recapHidden: null});
 }
 function loadTab() { try { const t = localStorage.getItem(TAB_KEY); if (t) UI.tab = t; } catch (e) { /* storage unavailable */ } }
 function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { /* storage unavailable */ } }
@@ -463,6 +463,46 @@ function weekCompareHTML() {
   </div>`;
 }
 
+/* last week in review on the Queue tab, from the private 14-day history, hideable until next Monday */
+const RECAP_KEY = 'iamunemployed-recap-hidden';
+const lastMonday = () => { const t = S.today.date; return addDays(t, -((parseYmd(t).getDay() + 6) % 7) - 7); };
+function recapHidden() { try { return localStorage.getItem(RECAP_KEY) === lastMonday(); } catch (e) { return false; } }
+function hideRecap() { try { localStorage.setItem(RECAP_KEY, lastMonday()); } catch (e) { /* storage unavailable */ } }
+function recapHTML() {
+  if (UI.recapHidden === lastMonday() || recapHidden()) return '';
+  const from = lastMonday(), to = addDays(from, 6);
+  const moods = (S.moodDays || []).filter(c => c.day >= from && c.day <= to);
+  const moves = (S.moveDays || []).filter(m => m.day >= from && m.day <= to);
+  if (!moods.length && !moves.length) return '';
+  const count = k => moves.filter(m => k === '*' || m.kind === k).reduce((n, m) => n + m.n, 0);
+  const all = count('*'), applied = count('applied'), interviews = count('interview');
+  const tally = {};
+  for (const c of moods) tally[c.mood] = (tally[c.mood] || 0) + 1;
+  // The most common mood; on a tie, the brighter one.
+  const top = [...MOODS].reverse().reduce((a, m) => ((tally[m[0]] || 0) > (a ? tally[a[0]] : 0) ? m : a), null);
+  const perDay = {};
+  for (const m of moves) perDay[m.day] = (perDay[m.day] || 0) + m.n;
+  const busy = Object.keys(perDay).sort().reduce((a, d) => (perDay[d] > (a ? perDay[a] : 0) ? d : a), null);
+  const lines = [];
+  if (top) lines.push(`Most common mood: ${top[1]} ${top[2]}.`);
+  if (busy) lines.push(`Busiest day: ${parseYmd(busy).toLocaleDateString('en-GB', {weekday: 'long'})}, with ${fmt(perDay[busy])} ${perDay[busy] === 1 ? 'move' : 'moves'}.`);
+  const g = S.weekGoal || 0;
+  if (g) lines.push(applied >= g ? `That meets your current goal of ${g} a week.` : `Your current goal is ${g} a week, and this week’s count starts fresh.`);
+  const joke = all ? 'A full performance review, and nobody asked you to rate yourself out of five.' : '';
+  const span = `${parseYmd(from).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})} to ${parseYmd(to).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}`;
+  return `<section class="block recap" aria-labelledby="recap-h">
+    <h2 id="recap-h">Last week in review</h2>
+    <p class="hint">${esc(span)}. Only you see this.</p>
+    <div class="stats">
+      <div><b>${fmt(applied)}</b><span>${applied === 1 ? 'application' : 'applications'}</span></div>
+      <div><b>${fmt(interviews)}</b><span>${interviews === 1 ? 'interview' : 'interviews'}</span></div>
+      <div><b>${fmt(moods.length)}/7</b><span>days checked in</span></div>
+    </div>
+    <p class="hint">${esc(`${fmt(all)} ${all === 1 ? 'move' : 'moves'} in all. ` + lines.join(' '))}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>
+    <button class="btn ghost small" data-action="recap-hide" data-k="recap-hide">Hide until next Monday</button>
+  </section>`;
+}
+
 /* views */
 function homeHTML() {
   const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
@@ -489,6 +529,7 @@ function homeHTML() {
   </div>
   ${streakRecordHTML()}
   ${streakNextHTML()}
+  ${recapHTML()}
   <div class="block">
     <h2>Today’s check-in</h2>
     <p class="hint">How are you feeling?</p>
@@ -1138,6 +1179,7 @@ const A = {
       if (!celebrateStreak(streakBefore, msg)) toast(msg);
     });
   },
+  'recap-hide'() { UI.recapHidden = lastMonday(); hideRecap(); render(); focusKey(`mood-${MOODS[0][0]}`); toast('Recap hidden. A fresh one arrives next Monday.'); },
   'mood-day'(el) { const d = el.dataset.day; UI.moodDay = UI.moodDay === d ? null : d; render(); },
   'goal-edit'() { UI.goalEdit = true; render(); const i = $('#goal-n'); if (i) { i.focus({preventScroll: true}); i.select(); } },
   'goal-cancel'() { UI.goalEdit = false; render(); focusKey('goal-edit'); },
