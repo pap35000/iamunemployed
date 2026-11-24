@@ -120,6 +120,8 @@ a{color:var(--ink)}
 .support{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .support .stats{align-self:stretch}
 .support .hint{margin:0 2px}
+.support-new{margin:0;align-self:stretch;background:var(--escape-soft);color:var(--ink);border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.4}
+.support-new b{font-family:var(--f-mono)}
 .streak-cel{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--ticket-soft);border-radius:16px;padding:14px 12px 12px}
 .streak-cel svg{width:30px;height:30px;fill:var(--led)}
 .streak-cel .tk-sub{color:var(--muted)}

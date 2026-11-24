@@ -123,7 +123,7 @@ async function passwordKey(nick, password) {
 /* state */
 const TAB_KEY = 'iamunemployed-tab';
 let S = null; // the signed-in member, as the server sees them
-const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null, recapHidden: null};
+const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null, recapHidden: null, newSupport: null};
 let DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
 let meAt = 0;
 
@@ -138,7 +138,7 @@ function setMe(me) {
 function forget() {
   S = null;
   DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
-  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null, recapHidden: null});
+  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null, recapHidden: null, newSupport: null});
 }
 function loadTab() { try { const t = localStorage.getItem(TAB_KEY); if (t) UI.tab = t; } catch (e) { /* storage unavailable */ } }
 function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { /* storage unavailable */ } }
@@ -368,10 +368,39 @@ function streakBestHTML() {
 
 /* support other members left on the member's own posts, private to the member */
 const RECEIVED_ORDER = ['hug', 'same', 'congrats', 'useful', 'haha'];
+/* reactions that arrived since the member last looked, remembered only in this browser */
+const SEEN_KEY = 'iamunemployed-support-seen:';
+const seenKey = () => SEEN_KEY + S.nick.toLowerCase();
+const receivedNow = () => Object.fromEntries(RECEIVED_ORDER.map(k => [k, Math.max(0, (S.received || {})[k] || 0)]));
+function markSupportSeen() { try { localStorage.setItem(seenKey(), JSON.stringify(receivedNow())); } catch (e) { /* storage unavailable */ } }
+function forgetSupportSeen() { try { localStorage.removeItem(seenKey()); } catch (e) { /* storage unavailable */ } }
+function supportSince() {
+  let before = null;
+  try { before = JSON.parse(localStorage.getItem(seenKey()) || 'null'); } catch (e) { before = null; }
+  const now = receivedNow();
+  markSupportSeen();
+  // a first visit on this device has nothing to compare with
+  if (!before || typeof before !== 'object') return null;
+  const fresh = {};
+  for (const k of RECEIVED_ORDER) {
+    const d = now[k] - (Number.isInteger(before[k]) ? before[k] : now[k]);
+    if (d > 0) fresh[k] = d;
+  }
+  return Object.keys(fresh).length ? fresh : null;
+}
+const supportList = got => RECEIVED_ORDER.filter(k => got[k]).map(k => `${REACT_LABEL[k]} ×${fmt(got[k])}`).join(' · ');
+const supportCount = got => RECEIVED_ORDER.reduce((n, k) => n + (got[k] || 0), 0);
+function supportNewHTML() {
+  const fresh = UI.newSupport;
+  if (!fresh) return '';
+  const n = supportCount(fresh);
+  return `<p class="support-new"><b>+${fmt(n)} new</b> since your last visit: ${esc(supportList(fresh))}</p>`;
+}
 function supportHTML() {
+  // looking at this card counts as seeing the reactions in it
+  markSupportSeen();
   const got = S.received || {}, posts = S.postCount || 0;
-  const total = RECEIVED_ORDER.reduce((n, k) => n + (got[k] || 0), 0);
-  const parts = RECEIVED_ORDER.filter(k => got[k]).map(k => `${REACT_LABEL[k]} ×${fmt(got[k])}`);
+  const total = supportCount(got);
   let hint, joke = '';
   if (!posts) hint = 'Post in the Feed and the hugs and “same”s other members leave you will add up here.';
   else if (!total) {
@@ -379,7 +408,7 @@ function supportHTML() {
     joke = 'Like hiring managers, but kinder.';
   }
   else {
-    hint = `From other members: ${parts.join(' · ')}. Anonymous posts count too. Only you see this.`;
+    hint = `From other members: ${supportList(got)}. Anonymous posts count too. Only you see this.`;
     joke = 'More replies than your last ten applications combined.';
   }
   const btn = posts
@@ -391,6 +420,7 @@ function supportHTML() {
       <div><b>${fmt(total)}</b><span>${total === 1 ? 'reaction' : 'reactions'} from others</span></div>
       <div><b>${fmt(posts)}</b><span>${posts === 1 ? 'post' : 'posts'} in the Feed</span></div>
     </div>
+    ${supportNewHTML()}
     <p class="hint">${esc(hint)}${joke ? ` <span class="joke">${esc(joke)}</span>` : ''}</p>
     ${btn}
   </div>`;
@@ -1050,7 +1080,12 @@ function enterApp(me) {
   UI.board = 'legends';
   UI.cat = 'All';
   $('#scr-splash').hidden = true;
+  UI.newSupport = supportSince();
   render();
+  if (UI.newSupport) {
+    const n = supportCount(UI.newSupport);
+    toast(`Since your last visit, other members left ${fmt(n)} ${n === 1 ? 'reaction' : 'reactions'} on your posts: ${supportList(UI.newSupport)}.${S.calm ? '' : ' Faster than any recruiter.'}`);
+  }
 }
 function showCode(code, isNew) {
   const d = days();
@@ -1122,6 +1157,7 @@ function onDelete(form) {
   if (typed.toLowerCase() !== S.nick.toLowerCase()) return formError(form, 'Type your nickname exactly to confirm.', '#del-nick');
   return submitting(form, () => queued(async () => {
     await api('/me', 'DELETE', {nick: typed});
+    forgetSupportSeen();
     closeAll();
     forget();
     showPane('ob-1');

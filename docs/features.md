@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-24: New support since your last visit. Members who come back to the app get a gentle toast listing the hugs, sames and other reactions other members left on their posts since they last looked, with a matching "+N new" note on the Me tab's Support received card.
 - 2026-11-23: Last week in review. Members see a private recap card on the Queue tab with last week's applications, interviews, check-in days, most common mood, busiest day and how it compares with their weekly goal, and can hide it until next Monday.
 - 2026-11-22: New best streak. Members on a run level with their old record see a nudge on the Queue tab that today's check-in or move beats it, and get a "new personal best" note in the toast (or milestone sheet) the day they break it.
 - 2026-11-21: This week vs last week. Members can compare their applications, interviews, all moves and check-ins this week so far with last week on the Me tab, privately, with a fair note on how they are doing against the same day last week.
@@ -25,6 +26,6 @@ One new member-visible feature ships at a time. Newest first.
 - Tap a row in This week vs last week to see that move's day-by-day breakdown.
 - Show the longest gap between interviews on the Me tab stats.
 - A small Record Breaker badge for beating a best streak of 7 days or more.
-- A gentle toast when one of my posts gets its first reaction.
+- Highlight which of my posts got the new reactions in the Mine filter.
 - More shortcuts: J and K to move between Feed posts, M to log a move.
 - Store each week's goal so the recap can show the goal that was set that week.
