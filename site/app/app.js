@@ -565,7 +565,7 @@ function homeHTML() {
     <p class="hint">How are you feeling?</p>
     <div class="moods">${MOODS.map(([k, e, l]) => `<button class="mood" data-action="mood" data-mood="${k}" data-k="mood-${k}" aria-pressed="${S.today.mood === k}" aria-label="${l}" title="${l}">${e}</button>`).join('')}</div>
     <p class="hint">Log a move. Rejections count too.</p>
-    <div class="chips">${MOVES.map(([k, l]) => `<button class="chip" data-action="move" data-move="${k}" data-k="move-${k}">${l}${S.today.moves[k] ? `<span class="n">${S.today.moves[k]}</span>` : ''}</button>`).join('')}</div>
+    <div class="chips">${MOVES.map(([k, l], i) => `<button class="chip" data-action="move" data-move="${k}" data-k="move-${k}"${i === 0 ? ' aria-keyshortcuts="M"' : ''}>${l}${S.today.moves[k] ? `<span class="n">${S.today.moves[k]}</span>` : ''}</button>`).join('')}</div>
     <p class="log">${esc(logLine)}</p>
   </div>
   ${goalHTML()}
@@ -664,7 +664,8 @@ function postHTML(p) {
   const sub = `${when}${esc(p.cat)} · ${ago(p.ts)}`;
   const tools = (p.mine ? '' : toolHTML(p, 'report', 'Report', 'Tap again to report'))
     + (p.canDelete ? toolHTML(p, 'del-post', p.mine ? 'Delete' : 'Remove', p.mine ? 'Tap again to delete' : 'Tap again to remove') : '');
-  return `<article class="post ${p.kind === 'escape' ? 'escape' : ''}">
+  // tabindex -1: J and K move keyboard focus from post to post without adding Tab stops.
+  return `<article class="post ${p.kind === 'escape' ? 'escape' : ''}" tabindex="-1" data-k="post-${p.id}">
     <header><span class="av ${p.anon ? 'x' : avClass(nick)}" aria-hidden="true">${p.anon ? '?' : esc(initials(nick))}</span>
       <div class="meta"><div class="name">${esc(nick)}${p.mine ? ' <span class="you">(you)</span>' : ''} ${pill} ${tag}</div><div class="sub">${sub}</div></div></header>
     <p>${esc(p.text)}</p>
@@ -769,7 +770,7 @@ function meHTML() {
   <div class="settings">
     <label class="set" for="set-public"><span><b>Show me on public leaderboards</b><small>Always under your nickname. When off, only you see your row.</small></span><input type="checkbox" class="switch" role="switch" id="set-public" data-k="set-public"${S.publicBoard ? ' checked' : ''}></label>
     <label class="set" for="set-calm"><span><b>Not in the mood for jokes today</b><small>Hides memes, titles, leaderboards and games.</small></span><input type="checkbox" class="switch" role="switch" id="set-calm" data-k="set-calm"${S.calm ? ' checked' : ''}></label>
-    <button class="set kb-only" type="button" data-action="open-keys" data-k="open-keys" aria-keyshortcuts="?"><span><b>Keyboard shortcuts</b><small>Switch tabs with 1 to 5 and start a post with N. Press ? any time.</small></span></button>
+    <button class="set kb-only" type="button" data-action="open-keys" data-k="open-keys" aria-keyshortcuts="?"><span><b>Keyboard shortcuts</b><small>Switch tabs with 1 to 5, start a post with N, move through the Feed with J and K, and log a move with M. Press ? any time.</small></span></button>
     <div class="set"><span><b><label for="set-country">Country</label></b><small>Sets your helplines and resources.</small></span><select id="set-country" data-k="set-country">${countryOpts}</select></div>
   </div>
   <h3>Need to talk to someone?</h3>
@@ -1399,8 +1400,32 @@ document.addEventListener('keydown', e => {
   const open = $$('.overlay').filter(o => !o.hidden);
   if (open.length) closeOv(open[open.length - 1]);
 });
-// Desktop shortcuts: 1-5 switch tabs, N starts a post, ? lists them. Off while typing or when a sheet is open.
+// Desktop shortcuts: 1-5 switch tabs, N starts a post, J/K step through Feed posts, M jumps to logging a move,
+// ? lists them. Off while typing or when a sheet is open.
 const KEY_TABS = ['home', 'boards', 'feed', 'fun', 'me'];
+function stepPost(dir) {
+  const posts = $$('#view-feed .post');
+  if (!posts.length) return toast(UI.cat === 'All' ? 'No posts to move through yet.' : 'No posts here yet. Try the All chip.');
+  const a = document.activeElement;
+  const cur = a instanceof Element ? posts.indexOf(a.closest('.post')) : -1;
+  const next = cur < 0 ? (dir > 0 ? 0 : posts.length - 1) : cur + dir;
+  if (next < 0) return toast('That’s the newest post.');
+  if (next >= posts.length) {
+    const more = $('#view-feed [data-k="more-posts"]');
+    if (more && !more.disabled) { more.focus(); return toast('That’s the last post loaded. Press Enter for older ones.'); }
+    return toast('That’s the oldest post.');
+  }
+  posts[next].focus({preventScroll: true});
+  posts[next].scrollIntoView({block: 'nearest'});
+}
+function jumpToMoves() {
+  if (S.escaped) return toast('You escaped! Moves are for members still in the queue.');
+  if (UI.tab !== 'home') go('home');
+  const chip = $('#view-home [data-k="move-applied"]');
+  if (!chip) return;
+  chip.focus({preventScroll: true});
+  chip.scrollIntoView({block: 'center'});
+}
 document.addEventListener('keydown', e => {
   if (!S || e.defaultPrevented || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
   const t = e.target;
@@ -1415,6 +1440,12 @@ document.addEventListener('keydown', e => {
   } else if (e.key === 'n' || e.key === 'N') {
     e.preventDefault();
     A['open-compose']();
+  } else if ((e.key === 'j' || e.key === 'J' || e.key === 'k' || e.key === 'K') && UI.tab === 'feed') {
+    e.preventDefault();
+    stepPost(e.key.toLowerCase() === 'j' ? 1 : -1);
+  } else if (e.key === 'm' || e.key === 'M') {
+    e.preventDefault();
+    jumpToMoves();
   } else if (e.key === '?') {
     e.preventDefault();
     openOv('ov-keys');
