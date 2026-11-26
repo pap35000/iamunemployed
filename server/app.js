@@ -13,6 +13,7 @@
 //   GET    /api/me/export                 everything stored about the member, as a file
 //   POST   /api/checkin                   today's mood     {mood}
 //   POST   /api/moves                     log a move       {kind}
+//   DELETE /api/moves                     undo one of today's moves {kind}
 //   POST   /api/escape                    landed a job     {role, wall}
 //   POST   /api/back                      back in the queue
 //   GET    /api/boards/legends|grind|escapees
@@ -65,6 +66,7 @@ const ROUTES = [
   ['GET', /^\/api\/me\/export$/, exportMe, true],
   ['POST', /^\/api\/checkin$/, checkIn, true],
   ['POST', /^\/api\/moves$/, logMove, true],
+  ['DELETE', /^\/api\/moves$/, undoMove, true],
   ['POST', /^\/api\/escape$/, escape, true],
   ['POST', /^\/api\/back$/, backInQueue, true],
   ['GET', /^\/api\/boards\/(legends|grind|escapees)$/, board, true],
@@ -552,6 +554,19 @@ async function logMove(ctx) {
       .bind(user.id, today, body.kind),
     touchStreak(db, user.id, today)
   ]);
+  return { me: await loadMe(ctx, user.id) };
+}
+
+// Takes back one move of a kind logged today, for mis-taps. Earlier days stay as they are,
+// and so does the streak: the member still showed up today.
+async function undoMove(ctx) {
+  const { db, body, user, today } = ctx;
+  if (!MOVES.includes(body.kind)) fail(400, 'bad_input', 'Unknown move.');
+  const r = await db.prepare('UPDATE moves SET n = n - 1 WHERE user_id = ?1 AND day = ?2 AND kind = ?3 AND n > 0')
+    .bind(user.id, today, body.kind).run();
+  if (!r.meta || !r.meta.changes) fail(409, 'nothing_to_undo', 'There’s no move like that to undo today.');
+  await db.prepare('DELETE FROM moves WHERE user_id = ?1 AND day = ?2 AND kind = ?3 AND n <= 0')
+    .bind(user.id, today, body.kind).run();
   return { me: await loadMe(ctx, user.id) };
 }
 

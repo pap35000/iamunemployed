@@ -253,6 +253,39 @@ await test('the last interview day is tracked for the member', async () => {
   assert.equal((await alice.get('/me')).data.me.lastInterview, null, 'other members’ interviews don’t count');
 });
 
+await test('one of today’s moves can be undone, and only today’s', async () => {
+  const m = new Member();
+  await join(m, 'Oops_7', { publicBoard: false, startDate: ymd(START - 10 * DAY) });
+  m.now = START - DAY;
+  await m.post('/moves', { kind: 'applied' });
+  m.now = START;
+  await m.post('/moves', { kind: 'applied' });
+  await m.post('/moves', { kind: 'applied' });
+  let me = (await m.post('/moves', { kind: 'ghosted' })).data.me;
+  assert.equal(me.streak, 2);
+  const appliedWeek = me.weekApplied;
+  let r = await m.del('/moves', { kind: 'applied' });
+  assert.equal(r.status, 200);
+  me = r.data.me;
+  assert.deepEqual(me.today.moves, { applied: 1, ghosted: 1 });
+  assert.equal(me.totals.applied, 2, 'yesterday’s move stays');
+  assert.equal(me.weekApplied, appliedWeek - 1, 'the weekly goal count follows');
+  assert.equal(me.streak, 2, 'the streak stays');
+  me = (await m.del('/moves', { kind: 'ghosted' })).data.me;
+  assert.deepEqual(me.today.moves, { applied: 1 }, 'a kind at zero disappears');
+  assert.equal(count("SELECT COUNT(*) AS n FROM moves WHERE kind = 'ghosted' AND user_id = (SELECT id FROM users WHERE nick = 'Oops_7')"), 0, 'no empty rows are kept');
+  r = await m.del('/moves', { kind: 'ghosted' });
+  assert.equal(r.status, 409);
+  assert.equal(r.data.error, 'nothing_to_undo');
+  assert.equal((await m.del('/moves', { kind: 'interview' })).status, 409, 'nothing of that kind today');
+  assert.equal((await m.del('/moves', { kind: 'napped' })).status, 400);
+  assert.equal((await m.del('/moves', {})).status, 400);
+  assert.equal((await m.del('/moves', { kind: 'applied' })).data.me.totals.applied, 1);
+  assert.equal((await m.del('/moves', { kind: 'applied' })).status, 409, 'yesterday’s move can’t be undone');
+  assert.equal((await m.call('DELETE', '/moves', { kind: 'applied' }, { Origin: 'https://evil.test' })).status, 403);
+  assert.equal((await new Member().del('/moves', { kind: 'applied' })).status, 401);
+});
+
 await test('moves per day are capped', async () => {
   const m = new Member();
   await join(m, 'Capped_9', { publicBoard: false });

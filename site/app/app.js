@@ -123,7 +123,7 @@ async function passwordKey(nick, password) {
 /* state */
 const TAB_KEY = 'iamunemployed-tab';
 let S = null; // the signed-in member, as the server sees them
-const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null, recapHidden: null, newSupport: null};
+const UI = {tab: 'home', board: 'legends', cat: 'All', joke: 0, backConfirm: false, goalEdit: false, pending: null, armed: null, code: null, codeIsNew: false, refreshedFor: null, moodDay: null, recapHidden: null, newSupport: null, movesFix: false};
 let DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
 let meAt = 0;
 
@@ -138,7 +138,7 @@ function setMe(me) {
 function forget() {
   S = null;
   DATA = {boards: {}, feed: null, unicorn: null, feedSeq: 0};
-  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null, recapHidden: null, newSupport: null});
+  Object.assign(UI, {backConfirm: false, goalEdit: false, pending: null, armed: null, moodDay: null, recapHidden: null, newSupport: null, movesFix: false});
 }
 function loadTab() { try { const t = localStorage.getItem(TAB_KEY); if (t) UI.tab = t; } catch (e) { /* storage unavailable */ } }
 function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { /* storage unavailable */ } }
@@ -534,6 +534,17 @@ function recapHTML() {
 }
 
 /* views */
+/* taking back a mis-tapped move, for today's moves only */
+function undoHTML(logged) {
+  if (!logged.length) return '';
+  if (!UI.movesFix) return '<button class="btn ghost small undo-open" data-action="moves-fix" data-k="moves-fix" aria-expanded="false">Undo a move</button>';
+  return `<div class="undo" role="group" aria-labelledby="undo-h">
+    <p class="hint" id="undo-h">Tapped by mistake? Remove one of today’s moves. Your streak stays.</p>
+    <div class="chips">${logged.map(([k, l]) => { const n = S.today.moves[k]; return `<button class="chip" data-action="move-undo" data-move="${k}" data-k="undo-${k}" aria-label="Remove one ${l}, ${n} logged today"><span aria-hidden="true">−</span> ${l}<span class="n">${n}</span></button>`; }).join('')}</div>
+    <button class="btn ghost small" data-action="moves-fix" data-k="moves-fix" aria-expanded="true">Done</button>
+  </div>`;
+}
+
 function homeHTML() {
   const d = days(), ti = tierOf(d), cur = TITLES[ti], next = TITLES[ti + 1];
   const pct = next ? Math.min(100, Math.round(((d - cur[0]) / (cur[1] - cur[0] + 1)) * 100)) : 100;
@@ -567,6 +578,7 @@ function homeHTML() {
     <p class="hint">Log a move. Rejections count too.</p>
     <div class="chips">${MOVES.map(([k, l], i) => `<button class="chip" data-action="move" data-move="${k}" data-k="move-${k}"${i === 0 ? ' aria-keyshortcuts="M"' : ''}>${l}${S.today.moves[k] ? `<span class="n">${S.today.moves[k]}</span>` : ''}</button>`).join('')}</div>
     <p class="log">${esc(logLine)}</p>
+    ${undoHTML(logged)}
   </div>
   ${goalHTML()}
   ${interviewHTML()}
@@ -1214,6 +1226,19 @@ const A = {
       msg += unlockedMsg(names);
       render();
       if (!celebrateStreak(streakBefore, msg)) toast(msg);
+    });
+  },
+  'moves-fix'() { UI.movesFix = !UI.movesFix; render(); },
+  'move-undo'(el) {
+    const k = el.dataset.move;
+    return queued(async () => {
+      setMe((await api('/moves', 'DELETE', {kind: k})).me);
+      delete DATA.boards.grind;
+      const left = MOVES.filter(([m]) => S.today.moves[m]);
+      if (!left.length) UI.movesFix = false;
+      render();
+      if (!S.today.moves[k]) focusKey(left.length ? `undo-${left[0][0]}` : `move-${k}`);
+      toast(`Removed one ${moveLabel(k)} from today.${S.calm ? '' : ' If only “we’ll be in touch” came with an undo button.'}`);
     });
   },
   'recap-hide'() { UI.recapHidden = lastMonday(); hideRecap(); render(); focusKey(`mood-${MOODS[0][0]}`); toast('Recap hidden. A fresh one arrives next Monday.'); },

@@ -136,6 +136,9 @@ a{color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip .n{font:700 11px var(--f-mono);background:var(--ticket);color:var(--ticket-ink);border-radius:99px;padding:1px 6px}
 .log{font-size:13px;color:var(--muted);margin:0}
+.undo-open{align-self:flex-start}
+.undo{display:flex;flex-direction:column;align-items:flex-start;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
+.undo .hint{margin:0}
 
 /* buttons and fields */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:700 15px var(--f-body);border:0;border-radius:12px;padding:11px 16px;min-height:46px;background:var(--ink);color:var(--bg);text-align:center;text-decoration:none}
