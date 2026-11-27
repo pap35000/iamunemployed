@@ -145,11 +145,13 @@ function saveTab() { try { localStorage.setItem(TAB_KEY, UI.tab); } catch (e) { 
 const days = () => S.escaped ? (S.escapedDays || 0) : Math.max(0, diffDays(S.startDate, todayStr()));
 
 /* badges */
+const CLOCKED_DAYS = 30; // best streak that earns Clocked In; it stays earned after the streak ends
 const peakDays = () => Math.max(days(), S.escapedDays || 0, S.peak || 0);
 const BADGES = [
   {id: 'centurion', name: 'Centurion', desc: '100 days in the queue', prog: () => [Math.min(peakDays(), 100), 100]},
   {id: 'ghost', name: 'Ghost Whisperer', desc: 'Ghosted by 10 companies', prog: () => [Math.min(S.totals.ghosted || 0, 10), 10]},
   {id: 'thick', name: 'Thick Skin', desc: '50 rejections logged', prog: () => [Math.min(S.totals.rejected || 0, 50), 50]},
+  {id: 'clocked', name: 'Clocked In', desc: 'A 30-day streak of check-ins or moves. Unpaid, but on time', prog: () => [Math.min(Math.max(S.bestStreak || 0, S.streak || 0), CLOCKED_DAYS), CLOCKED_DAYS]},
   {id: 'helper', name: 'Helping Hand', desc: 'Helped someone 15 times', prog: () => [Math.min(S.totals.helped || 0, 15), 15]},
   {id: 'boss', name: 'Final Boss Survivor', desc: 'Five interview rounds for one job', claim: true},
   {id: 'speedrun', name: 'Speedrun Rejection', desc: 'Rejected within 3 minutes of applying', claim: true},
@@ -358,6 +360,7 @@ function streakBestHTML() {
     hint = `Your best is ${best} ${dayWord(best)}${when}. ${left} more ${dayWord(left)} in a row ${now ? 'and you beat it' : 'beats it'}.`;
     joke = 'Unlike job offers, this record can’t be rescinded.';
   }
+  if (now && best < CLOCKED_DAYS) hint += ` ${CLOCKED_DAYS - now} more ${dayWord(CLOCKED_DAYS - now)} in a row earns the Clocked In badge.`;
   return `<h3 id="streaks-h">Streaks</h3>
   <div class="stats" role="group" aria-labelledby="streaks-h">
     <div><b>${fmt(now)}</b><span>${dayWord(now)} streak now</span></div>

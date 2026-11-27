@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-27: Clocked In badge. Members can earn a new Clocked In badge for a 30-day streak of check-ins or moves, follow its progress on the Me tab, and see how many days in a row are left in the Streaks card.
 - 2026-11-26: Undo a move. Members who mis-tap a move on the Queue tab can open Undo a move and remove one of today's moves at a time, with their weekly goal, totals and Grind of the Week count following and their streak kept.
 - 2026-11-25: Feed and move shortcuts. Members on desktop can press J and K to step through Feed posts, with focus landing on each post so Tab reaches its reactions, and M to jump straight to logging a move on the Queue tab.
 - 2026-11-24: New support since your last visit. Members who come back to the app get a gentle toast listing the hugs, sames and other reactions other members left on their posts since they last looked, with a matching "+N new" note on the Me tab's Support received card.
