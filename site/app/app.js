@@ -33,6 +33,18 @@ const HELP = {
 };
 const INDUSTRIES = ['Tech', 'Design', 'Marketing', 'Hospitality', 'Retail', 'Healthcare', 'Education', 'Finance', 'Other'];
 const CATS = ['Mental Health', 'Interviews', 'CVs & Résumés', 'Rejections', 'Benefits & Paperwork', 'Career Change', 'Wins', 'Memes'];
+// What an empty category suggests, and the starter line shown in the composer for it.
+const CAT_GUIDE = {
+  'Mental Health': ['How are you holding up, honestly? Others here are carrying the same weight, and nobody is grading this.', 'This week has been heavy because…'],
+  'Interviews': ['Got an interview coming up, or just survived one? Share a question that stumped you or a tip that worked.', 'They asked me…'],
+  'CVs & Résumés': ['Stuck on a bullet point? Ask for a second pair of eyes or share what finally got past the ATS.', 'How do I describe…'],
+  'Rejections': ['Got a “we’ve decided to move forward with other candidates”? Post it here. Rejections are lighter in company.', 'Today’s rejection said…'],
+  'Benefits & Paperwork': ['Forms, deadlines, offices that open at 9 and close at 9:05. Ask a question or share what you figured out.', 'Does anyone know how to…'],
+  'Career Change': ['Thinking of switching fields? Share where you’re heading or ask someone who already made the jump.', 'I’m thinking of moving into…'],
+  'Wins': ['Every win counts here: a reply, a callback, a finished course, getting out of bed. Start the board.', 'Small win today:'],
+  'Memes': ['Turn the hiring process into a meme. Job ads asking for 10 years of experience in a 3-year-old tool are fair game.', 'Job ad of the day:']
+};
+const COMPOSE_HINT = 'A rejection, a win, a question, a rant. It all counts.';
 const MOVES = [['applied', 'Applied'], ['interview', 'Interview'], ['course', 'Course'], ['coffee', 'Coffee chat'], ['workout', 'Workout'], ['helped', 'Helped someone'], ['rejected', 'Got rejected'], ['ghosted', 'Got ghosted']];
 const moveLabel = k => (MOVES.find(m => m[0] === k) || [k, k])[1];
 const MOVE_TOAST = {
@@ -690,6 +702,11 @@ function postHTML(p) {
 // 'Mine' is not a category: it asks the API for the member's own posts, anonymous ones too.
 const MINE = 'Mine';
 const feedQuery = cat => cat === MINE ? {mine: '1'} : cat === 'All' ? {} : {cat};
+// A first post for an empty category: what fits there, and a button that opens the composer in it.
+function catEmptyHTML(cat) {
+  const g = CAT_GUIDE[cat];
+  return `<div class="empty"><p class="hint"><b>Nothing in ${esc(cat)} yet.</b> ${g ? esc(g[0]) : 'Be the first to post.'}</p><button class="btn ghost small" data-action="open-compose" data-cat="${esc(cat)}" data-k="cat-compose">Post in ${esc(cat)}</button></div>`;
+}
 function feedHTML() {
   if (S.calm && UI.cat === 'Memes') UI.cat = 'All';
   const cats = ['All', MINE, ...CATS].filter(c => !(S.calm && c === 'Memes'));
@@ -704,7 +721,7 @@ function feedHTML() {
       ? (mine ? `<p class="hint">${posts.length}${f.more ? '+' : ''} ${posts.length === 1 && !f.more ? 'post' : 'posts'} from you. Anonymous ones are marked as yours only on your screen.</p>` : '') + posts.map(postHTML).join('')
       : mine
         ? `<div class="empty"><p class="hint">You haven’t posted yet. Everything you share, anonymous posts included, collects here so you can find it again.</p><button class="btn ghost small" data-action="open-compose" data-k="mine-compose">Write your first post</button></div>`
-        : emptyBox(UI.cat === 'All' ? 'No posts yet. Be the first to share something with the queue.' : `Nothing in ${esc(UI.cat)} yet. Be the first to post.`);
+        : UI.cat === 'All' ? emptyBox('No posts yet. Be the first to share something with the queue.') : catEmptyHTML(UI.cat);
     if (f.more) body += `<button class="btn ghost small more" data-action="more-posts" data-k="more-posts"${f.loadingMore ? ' disabled' : ''}>${f.loadingMore ? 'Loading…' : 'Show older posts'}</button>`;
   }
   return `<button class="compose-btn" data-action="open-compose" data-k="open-compose"><span class="av ${avClass(S.nick)}" aria-hidden="true">${esc(initials(S.nick))}</span><span>Share something with the queue…</span></button>
@@ -883,6 +900,12 @@ function refreshMe() {
 const findPost = id => (DATA.feed && DATA.feed.posts ? DATA.feed.posts.find(p => p.id === id) : null);
 function dropPost(id) { if (DATA.feed && DATA.feed.posts) DATA.feed.posts = DATA.feed.posts.filter(p => p.id !== id); }
 
+// The composer suggests a starter line once a category is chosen for it.
+function composeHint(byCat = true) {
+  const g = byCat && CAT_GUIDE[$('#composer-cat').value];
+  $('#composer-text').placeholder = g ? g[1] : COMPOSE_HINT;
+}
+
 let toastTimer = 0;
 function toast(msg) {
   const el = $('#toast');
@@ -992,7 +1015,7 @@ function publishPost(p, msg) {
     $('#composer-text').value = '';
     $('#composer-anon').checked = false;
     closeOv($('#ov-compose'));
-    if (UI.cat !== MINE) UI.cat = 'All';
+    if (UI.cat !== MINE && UI.cat !== p.cat) UI.cat = 'All';
     DATA.feed = null;
     go('feed');
     toast(msg);
@@ -1279,7 +1302,15 @@ const A = {
       .finally(() => { f.loadingMore = false; if (UI.tab === 'feed') render(); });
   },
   'open-keys'() { openOv('ov-keys'); },
-  'open-compose'() { formError($('#compose-form'), ''); openOv('ov-compose'); },
+  'open-compose'(el) {
+    formError($('#compose-form'), '');
+    // start in the category being browsed (or the one an empty state asked for)
+    const want = (el && el.dataset && el.dataset.cat) || (UI.tab === 'feed' ? UI.cat : '');
+    const pick = CATS.includes(want) && !(S.calm && want === 'Memes');
+    if (pick) $('#composer-cat').value = want;
+    composeHint(pick);
+    openOv('ov-compose');
+  },
   react(el) {
     const id = Number(el.dataset.post), r = el.dataset.r;
     const p = findPost(id);
@@ -1410,6 +1441,7 @@ document.addEventListener('change', e => {
   if (t.id === 'set-public') saveSettings({publicBoard: t.checked}, () => (S.publicBoard ? `You’re on the boards as ${S.nick}.` : 'You’re private. Only you see your row.'));
   else if (t.id === 'set-calm') saveSettings({calm: t.checked}, () => (S.calm ? 'Calm mode on. Take it easy today.' : 'Calm mode off.'));
   else if (t.id === 'set-country') saveSettings({country: t.value}, () => `Helplines updated for ${countryName(S.country)}.`);
+  else if (t.id === 'composer-cat') composeHint();
   else if (t.id === 'set-mentor') saveSettings({mentor: t.checked}, () => (S.mentor ? 'You’re listed as a mentor. Thank you.' : 'Mentor mode off.'));
 });
 document.addEventListener('input', e => {

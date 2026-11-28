@@ -4,6 +4,7 @@ One new member-visible feature ships at a time. Newest first.
 
 ## Shipped
 
+- 2026-11-28: Guided empty Feed categories. Members who open a Feed category with no posts yet see what fits there and a Post in button that opens the composer already set to that category with a starter line, and posting from a category keeps them in it to see their post.
 - 2026-11-27: Clocked In badge. Members can earn a new Clocked In badge for a 30-day streak of check-ins or moves, follow its progress on the Me tab, and see how many days in a row are left in the Streaks card.
 - 2026-11-26: Undo a move. Members who mis-tap a move on the Queue tab can open Undo a move and remove one of today's moves at a time, with their weekly goal, totals and Grind of the Week count following and their streak kept.
 - 2026-11-25: Feed and move shortcuts. Members on desktop can press J and K to step through Feed posts, with focus landing on each post so Tab reaches its reactions, and M to jump straight to logging a move on the Queue tab.
@@ -24,7 +25,6 @@ One new member-visible feature ships at a time. Newest first.
 ## Ideas
 
 - Goal streak: weeks in a row with the application goal met, plus a badge.
-- Guided empty state for the Feed when a category has no posts yet.
 - Share card for reaching the weekly goal (hidden in calm mode).
 - Tap a row in This week vs last week to see that move's day-by-day breakdown.
 - Show the longest gap between interviews on the Me tab stats.
@@ -33,3 +33,4 @@ One new member-visible feature ships at a time. Newest first.
 - Shortcut R to react Same on the focused Feed post.
 - An Undo button inside the move toast for the move just logged.
 - Store each week's goal so the recap can show the goal that was set that week.
+- Remember the last category a member posted in and suggest it next time.
